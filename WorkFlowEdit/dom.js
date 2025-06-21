@@ -44,6 +44,7 @@ export const agentNameInput = document.getElementById('agent-name');
 export const agentTypeSelect = document.getElementById('agent-type');
 export const agentPromptTextarea = document.getElementById('agent-prompt');
 export const agentToolsDiv = document.getElementById('agent-tools'); // Container for tool checkboxes
+export const editAgentOutputsBtn = document.getElementById('edit-agent-outputs-btn'); // Added button
 export const saveAgentDetailsBtn = document.getElementById('save-agent-details-btn');
 export const backToWorkflowBtn = document.getElementById('back-to-workflow-btn');
 

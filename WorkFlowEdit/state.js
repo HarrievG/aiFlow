@@ -46,7 +46,11 @@ export const state = {
 	// WebSocket State
 	isConnected: false,
 
-	currentViewId: null
+	currentViewId: null,
+
+	// For context-aware output editor
+	currentEditingContext: 'workflow', // Can be 'workflow' or 'agent'
+	currentEditingAgentId: null // Stores agent ID if currentEditingContext is 'agent'
 };
 
 // Functions to modify state (optional, but good practice)
