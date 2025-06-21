@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>aiFlow Editor</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<h1> aiFlow </h1>
+
+	<div id="controls">
+		<button id="home-btn">Home</button>
+		<button id="add-node-btn" class="editor-control">Add Node</button>
+		<button id="save-btn" class="editor-control">Save Layout</button>
+		<button id="load-btn" class="editor-control">Load Layout</button>
+		<button id="back-control-btn" class="editor-control">Back to Workflow</button>
+		<button id="outputs-control-btn" class="editor-control">Edit Outputs</button>
+		<button id="clear-btn" class="editor-control">Clear All</button>
+
+
+		<span class="control-separator editor-control">|</span>
+
+
+		<label class="editor-control">Flow:</label>
+		<input type="radio" name="flow-direction" id="flow-horizontal" value="horizontal" checked class="editor-control">
+		<label for="flow-horizontal" class="editor-control">Horizontal</label>
+		<input type="radio" name="flow-direction" id="flow-vertical" value="vertical" class="editor-control">
+		<label for="flow-vertical" class="editor-control">Vertical</label>
+	</div>
+
+	<!-- Main Content -->
+	<div id="main-content">
+		<!-- Home View -->
+		<div id="home-view" class="view">
+			<h2>Workflows</h2>
+			<hr class="demo-pulse">
+			<button id="create-workflow-btn">Create New Workflow</button>
+			<button id="browse-files-btn">Browse Files</button>
+			<hr class="demo-pulse">
+			<ul id="workflow-list">
+				<!-- Workflow items will be loaded here -->
+			</ul>
+		</div>
+
+		<!-- Workflow Editor Page -->
+		<div id="workflow-editor-view" class="view">
+			<div id="workflow-details">
+				<h2>Workflow Details</h2>
+
+				<hr class="demo-pulse" style="background: #2ecc71;">
+				<label for="workflow-id">ID:</label>
+				<input type="text" id="workflow-id" readonly><br>
+				<label for="workflow-name">Name:</label>
+				<input type="text" id="workflow-name"><br>
+
+				<label for="workflow-service-type">Service Type:</label>
+				<select id="workflow-service-type">
+				</select><br>
+
+				<label for="workflow-query">Initial Query:</label>
+				<textarea id="workflow-query"></textarea><br>
+				<button id="save-workflow-details-btn">Save Details</button>
+				<button id="execute-workflow-btn">Execute Workflow</button>
+				<button id="manage-workflow-arguments-btn">Arguments</button>
+				<button id="manage-agents-btn">Manage Agents</button>
+				<button id="edit-graph-btn">Edit Graph</button>
+				<div id="execution-status"></div>
+			</div>
+			<!-- Node Editor Area (from original FlowEdit) -->
+			<div id="node-editor-container" class="hidden">
+				<div id="node-editor">
+					<svg id="link-svg-layer"></svg>
+					<div id="workspace">
+						<!-- Nodes will be be added here dynamically -->
+					</div>
+				</div>
+			</div>
+			<!-- Agent Management Area -->
+			<div id="agent-management-container" class="hidden">
+				<h2>Agents</h2>
+				<button id="add-agent-btn">Add Agent</button>
+				<ul id="agent-list">
+					<!-- Agent items will be loaded here -->
+				</ul>
+			</div>
+		</div>
+
+		<!-- Agent Editor Page -->
+		<div id="agent-editor-view" class="view">
+			<h2>Agent Details</h2>
+			<hr class="demo-pulse" style="background: #0094ff;">
+
+
+			<button id="save-agent-details-btn">Save Agent</button>
+			<button id="back-to-workflow-btn">Back to Workflow</button>
+			<br /><br />
+			<label for="agent-id">ID:</label>
+			<input type="text" id="agent-id" readonly><br>
+			<label for="agent-name">Name:</label>
+			<input type="text" id="agent-name"><br>
+			<label for="agent-type">Type:</label>
+			<select id="agent-type">
+				<option value="generic">Generic</option>
+				<option value="director">Flow Director</option>
+				<option value="master">Flow Master</option>
+			</select><br>
+			<label for="agent-prompt">Prompt:</label>
+			<textarea id="agent-prompt"></textarea><br>
+
+			<h3>Tools</h3>
+			<div id="agent-tools">
+				<!-- Tool checkboxes/selectors will be loaded here -->
+			</div>
+
+			<!-- Add section for Sub-agents if needed -->
+			<h3>Sub-Agents</h3>
+			<div id="agent-sub-agents"></div>
+
+		</div>
+
+		<!-- Flow Master Editor Page (Specialized) -->
+		<div id="flowmaster-editor-view" class="view">
+			<h2>Flow Master Details</h2>
+			<p>This is a specialized editor for the Flow Master agent.</p>
+			<!-- Content for specialized Flow Master editor goes here -->
+			<!-- Based on the description, this might involve visualizing/editing a state machine -->
+			<button id="save-flowmaster-details-btn">Save Flow Master</button>
+			<button id="back-to-workflow-from-flowmaster-btn">Back to Workflow</button>
+		</div>
+
+		<!-- Filesystem Browser View -->
+		<div id="filesystem-view" class="view">
+			<h2>Filesystem Browser</h2>
+			<hr class="demo-pulse" style="background: #b200ff;">
+			<div id="filesystem-controls">
+				<button id="go-up-btn">Up Directory</button>
+				<span id="current-path">.</span>
+			</div>
+			<ul id="filesystem-list">
+				<!-- File and directory entries will be loaded here -->
+			</ul>
+		</div>
+
+		<!-- Arguments View -->
+		<div id="arguments-view" class="view">
+			<h2>Global Arguments</h2>
+			<hr class="demo-pulse" style="background: #f39c12;">
+			<button id="add-argument-pair-btn">Add Argument</button>
+			<button id="save-arguments-btn">Save Arguments</button>
+			<button id="back-to-workflow-from-arguments-btn">Back to Workflow</button>
+			<p>Define key-value pairs for global script arguments or settings.</p>
+			<div id="arguments-list-container">
+				<!-- Argument pairs will be loaded here -->
+			</div>
+		</div>
+
+		<!-- Structured Outputs View -->
+		<div id="structured-outputs-view" class="view">
+			<h2>Global outputs</h2>
+			<hr class="demo-pulse" style="background: #2ecc71;">
+			<button id="add-output-pair-btn">Add Item</button>
+			<button id="save-outputs-btn">Save Outputs</button>
+			<button id="back-to-workflow-from-outputs-btn">Back to Workflow</button>
+			<p>Define key-value pairs for workflow or agent results.</p>
+			<div id="outputs-list-container">
+				<!-- output pairs will be loaded here -->
+			</div>
+		</div>
+	</div>
+
+	<!-- Workflow Execution Modal -->
+	<div id="execute-workflow-modal" class="modal">
+		<div class="modal-content">
+			<span class="close-button">×</span>
+			<h3 id="modal-title-txt">Run Workflow</h3>
+			<hr class="demo-pulse" style="background: #377231;">
+			<div id="modal-query-container">
+				<label for="modal-query-input" id="modal-query-label">Initial Query:</label>
+				<input type="text" id="modal-query-input" placeholder="Your query here...">
+			</div>
+			<div id="modal-arguments-container">
+				<!-- Dynamic arguments will be injected here -->
+			</div>
+			<button id="modal-run-now-btn">Run Now!</button>
+		</div>
+	</div>
+
+	<!-- Template for nodes (from original FlowEdit) -->
+	<template id="node-template">
+		<div class="node">
+			<div class="node-header">Node Title</div>
+			<div class="node-content">
+				<div class="node-inputs"></div>
+				<div class="node-outputs"></div>
+			</div>
+		</div>
+	</template>
+
+	<script type="module" src="main.js"></script>
+</body>
+</html>

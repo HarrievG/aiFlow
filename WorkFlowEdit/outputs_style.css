@@ -1,0 +1,1292 @@
+﻿﻿ /* --- Base Styles --- */
+html {
+	/* Keep centering properties */
+	align-items: center;
+	align-content: center;
+	display: flex;
+	justify-content: center;
+	/* Use a slightly darker base background */
+	background-color: #121212; /* Very dark gray */
+}
+
+hr {
+	display: block;
+	margin-block-start: 0.5em;
+	margin-block-end: 0.5em;
+	margin-inline-start: auto;
+	margin-inline-end: auto;
+	unicode-bidi: isolate;
+	overflow: visible;
+	border-style: inset;
+	border-width: 1px;
+}
+
+body {
+	font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* More modern sans-serif stack */
+	margin: 0;
+	color: #e0e0e0; /* Light gray for main text */
+	background-color: #1a1a1a; /* Dark background */
+	height: 100vh;
+	width: 65%; /* Keep specified width */
+	max-width: 1200px; /* Add max-width for large screens */
+	padding: 0 20px; /* Add some padding on the sides */
+	box-sizing: border-box; /* Include padding in width */
+	overflow: hidden;
+	flex-direction: column;
+	display: flex;
+	justify-content: flex-start; /* Align content to the top */
+	/* Remove height: 100vh and use min-height if body doesn't fill screen, but 100vh is likely intentional for app layout */
+}
+
+h1 {
+	text-align: center;
+	margin: 10px 0 20px 0; /* More space below h1 */
+	color: #ffffff; /* White for main titles */
+	font-size: 2em; /* Slightly larger */
+	font-weight: 300; /* Lighter weight */
+}
+
+h2 {
+	color: #ffffff; /* White for section titles */
+	margin-top: 0;
+	margin-bottom: 15px;
+	font-size: 1.5em;
+	font-weight: 400;
+}
+
+div {
+	display: block;
+	unicode-bidi: isolate;
+}
+
+
+/* --- Controls Bar --- */
+#controls {
+	padding: 10px 15px; /* More padding */
+	background-color: #282828; /* Dark background for controls */
+	text-align: center;
+	border-bottom: 1px solid #444; /* Darker border */
+	z-index: 20; /* Above SVG layer */
+	position: relative; /* Needed for z-index */
+	box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Subtle shadow */
+	display: flex; /* Use flex for better alignment */
+	justify-content: center; /* Center items */
+	align-items: center;
+	flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
+}
+
+	#controls button, #controls label, #controls input[type="checkbox"], #controls span {
+		padding: 8px 8px; /* Consistent padding */
+		margin: 5px 5px; /* Consistent margin */
+		vertical-align: middle;
+		font-size: 0.95em;
+		color: #e0e0e0;
+	}
+
+	#controls label {
+		cursor: pointer; /* Indicate labels are interactive */
+	}
+
+
+	#controls button {
+		padding: 8px 15px;
+		cursor: pointer;
+		border: 1px solid #555; /* Darker border */
+		border-radius: 4px;
+		background-color: #3a3a3a; /* Dark button background */
+		color: #ffffff; /* White text */
+		transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth transitions */
+	}
+
+		#controls button:hover:not(:disabled) {
+			background-color: #4a4a4a; /* Slightly lighter on hover */
+			border-color: #666;
+		}
+
+		#controls button:active:not(:disabled) {
+			background-color: #5a5a5a; /* Darker when pressed */
+			box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); /* Pressed effect */
+		}
+
+		#controls button:disabled {
+			opacity: 0.6; /* Mute disabled buttons */
+			cursor: not-allowed;
+			background-color: #3a3a3a; /* Keep base color */
+			border-color: #555;
+		}
+
+.control-separator {
+	margin: 0 10px;
+	color: #666; /* Darker separator */
+}
+
+/* Hide editor-specific controls when not in editor view */
+.editor-control {
+	display: none;
+}
+
+#workflow-editor-view.active .editor-control {
+	display: inline-block; /* Show when workflow editor is active */
+}
+
+#workflow-editor-view.active #flow-horizontal,
+#workflow-editor-view.active label[for="flow-horizontal"],
+#workflow-editor-view.active #flow-vertical,
+#workflow-editor-view.active label[for="flow-vertical"] {
+	display: inline-block;
+}
+
+
+/* --- Main Content Area and Views --- */
+#main-content {
+	flex-grow: 1;
+	display: block; /* Use block to manage views */
+	position: relative; /* For absolute positioning of views */
+	width: 100%; /* Ensure it takes full width */
+	/* Remove background here, views handle it */
+}
+
+.view {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	overflow: visible; /* Allow scrolling within views if content overflows */
+	padding: 20px;
+	box-sizing: border-box;
+	background-color: #282828; /* Dark background for views by default */
+	color: #e0e0e0; /* Default text color for views */
+	display: none; /* Hidden by default */
+	animation: fadeIn 0.3s ease-out; /* Simple fade-in animation */
+}
+
+	.view.active {
+		background-color: #1a1a1a; /* Match body background when active */
+		display: block; /* Show the active view */
+	}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+
+/* Home View Specifics */
+#home-view h2 {
+	margin-top: 0;
+}
+
+#workflow-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+	#workflow-list li {
+		background-color: #282828; /* Darker background for list items */
+		border: 1px solid #444; /* Darker border */
+		margin-bottom: 8px; /* More vertical space */
+		padding: 12px 15px; /* More padding */
+		cursor: pointer;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		color: #e0e0e0; /* Light text */
+		border-radius: 4px;
+		transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+	}
+
+		#workflow-list li:hover {
+			background-color: #3a3a3a; /* Highlight on hover */
+			border-color: #555;
+		}
+
+	#workflow-list .workflow-actions button {
+		margin-left: 8px; /* More space */
+		padding: 5px 12px; /* Slightly more padding */
+		font-size: 0.8em;
+		/* Inherits dark button styles, adjust if needed */
+		border: 1px solid #666;
+		background-color: #555;
+		color: #fff;
+		transition: background-color 0.2s ease-in-out;
+	}
+
+		#workflow-list .workflow-actions button:hover:not(:disabled) {
+			background-color: #666;
+		}
+
+		#workflow-list .workflow-actions button:active:not(:disabled) {
+			background-color: #777;
+		}
+
+
+/* --- Form Element Styling (Inputs, Textareas, Selects) --- */
+/* Applied consistently across views */
+label {
+	display: inline-block;
+	width: 120px; /* Keep alignment */
+	margin-bottom: 8px; /* Consistent margin */
+	color: #bbb; /* Muted label color */
+	vertical-align: top; /* Align label top with input/textarea */
+	font-size: 0.95em;
+}
+
+input[type="text"],
+input[type="number"], /* Added number type */
+textarea,
+select {
+	width: calc(100% - 130px); /* Keep width calculation */
+	padding: 10px; /* More padding */
+	margin-bottom: 15px; /* More space below */
+	border: 1px solid #555; /* Darker border */
+	border-radius: 4px;
+	vertical-align: top;
+	background-color: #333; /* Dark background */
+	color: #eee; /* Light text */
+	box-sizing: border-box; /* Include padding and border in the element's total width and height */
+	font-size: 1em;
+	transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+	input[type="text"]:focus,
+	input[type="number"]:focus,
+	textarea:focus,
+	select:focus {
+		outline: none; /* Remove default outline */
+		border-color: #007bff; /* Accent color on focus */
+		box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Subtle glow on focus */
+	}
+
+
+textarea {
+	min-height: 100px; /* Slightly taller textarea */
+	resize: vertical;
+}
+
+select {
+	/* Style the dropdown arrow for dark background */
+	-webkit-appearance: none; /* Remove default arrow */
+	-moz-appearance: none;
+	appearance: none;
+	/* Using a common SVG arrow pointing down */
+	background-image: url('data:image/svg+xml;utf8,<svg fill="%23eeeeee" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+	background-repeat: no-repeat;
+	background-position: right 10px top 50%;
+	background-size: 12px auto;
+	padding-right: 30px; /* Make space for the arrow */
+	cursor: pointer;
+}
+
+/* Specific form overrides within this view if needed, but general styles above should apply */
+#workflow-editor-view label {
+}
+
+#workflow-editor-view input[type="text"], #workflow-editor-view textarea, #workflow-editor-view select {
+}
+/* These selectors are covered by the general form styles now */
+
+
+#workflow-editor-view #workflow-details button {
+	/* This rule is now handled by the consolidated .view-action-button style below */
+	/* This block should be removed. */
+}
+
+
+/* --- View-Level Action Buttons (Save, Back, etc.) --- */
+/* Applied to buttons in workflow, agent, and arguments editors for a consistent look. */
+#workflow-editor-view #workflow-details button,
+#agent-editor-view > button,
+#arguments-view > button,
+#home-view > button {
+	padding: 8px 15px;
+	cursor: pointer;
+	border: 1px solid #555;
+	border-radius: 4px;
+	background-color: #3a3a3a;
+	color: #ffffff;
+	transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+	margin-top: 10px;
+	margin-right: 10px;
+}
+
+	#workflow-editor-view #workflow-details button:hover:not(:disabled),
+	#agent-editor-view > button:hover:not(:disabled),
+	#arguments-view > button:hover:not(:disabled),
+	#home-view > button:hover:not(:disabled) {
+		background-color: #4a4a4a;
+		border-color: #666;
+	}
+
+	#workflow-editor-view #workflow-details button:active:not(:disabled),
+	#agent-editor-view > button:active:not(:disabled),
+	#arguments-view > button:active:not(:disabled),
+	#home-view > button:active:not(:disabled) {
+		background-color: #5a5a5a;
+		box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+	}
+
+	#workflow-editor-view #workflow-details button:disabled,
+	#agent-editor-view > button:disabled,
+	#arguments-view > button:disabled,
+	#home-view > button:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		background-color: #3a3a3a;
+		border-color: #555;
+	}
+/* END --- View-Level Action Buttons --- */
+
+#workflow-editor-view #execution-status {
+	margin-top: 20px; /* More space */
+	padding: 15px; /* More padding */
+	border: 1px dashed #666; /* Darker dashed border */
+	background-color: #222; /* Very dark background */
+	color: #0f0; /* Green text for status - maybe a softer green? */
+	color: #90ee90; /* Light green */
+	min-height: 50px; /* Taller minimum */
+	white-space: pre-wrap; /* Preserve formatting */
+	word-break: break-all;
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; /* Monospaced font for status */
+	font-size: 0.9em;
+	overflow-y: auto; /* Add scroll if status is long */
+	max-height: 150px; /* Limit height */
+	border-radius: 4px;
+}
+
+
+/* Agent Management Area within Workflow Editor */
+#agent-management-container {
+	/* Inherits border, margin-top, height, overflow, position */
+	background-color: #222; /* Dark background for the container */
+	color: #eee; /* Light text */
+	padding: 15px; /* Add padding inside the container */
+	box-sizing: border-box;
+	border-radius: 4px;
+}
+
+	#agent-management-container h2 {
+		color: #fff; /* White heading */
+		margin-top: 0;
+		margin-bottom: 15px; /* More space below heading */
+		font-size: 1.3em;
+	}
+
+	#agent-management-container > button { /* Target the Add Agent button */
+		margin-bottom: 15px; /* Space below button */
+		padding: 8px 15px;
+		/* Inherits dark button styles */
+	}
+
+#agent-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+	#agent-list li {
+		background-color: #3a3a3a; /* Darker background for list items */
+		border: 1px solid #555; /* Darker border */
+		margin-bottom: 8px; /* More vertical space */
+		padding: 10px 15px; /* More padding */
+		cursor: pointer;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		color: #e0e0e0; /* Light text */
+		border-radius: 4px;
+		transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+	}
+
+		#agent-list li:hover {
+			background-color: #4a4a4a; /* Highlight on hover */
+			border-color: #666;
+		}
+
+	#agent-list .agent-actions button {
+		margin-left: 8px; /* More space */
+		padding: 5px 12px; /* Slightly more padding */
+		font-size: 0.8em;
+		border: 1px solid #666;
+		background-color: #555;
+		color: #fff;
+		border-radius: 4px;
+		transition: background-color 0.2s ease-in-out;
+	}
+
+		#agent-list .agent-actions button:hover:not(:disabled) {
+			background-color: #666;
+		}
+
+		#agent-list .agent-actions button:active:not(:disabled) {
+			background-color: #777;
+		}
+
+
+/* Agent Editor View Specifics */
+#agent-editor-view {
+	/* Inherits base view styles */
+}
+	/* Form elements covered by general styles */
+	#agent-editor-view label {
+	}
+
+	#agent-editor-view input[type="text"],
+	#agent-editor-view select,
+	#agent-editor-view textarea {
+	}
+
+
+	#agent-editor-view #agent-tools {
+		margin-bottom: 20px; /* More space */
+		padding: 15px; /* More padding */
+		border: 1px dashed #666; /* Darker dashed border */
+		background-color: #282828; /* Dark background */
+		color: #ccc; /* Muted color */
+		border-radius: 4px;
+	}
+
+		#agent-editor-view #agent-tools h3 {
+			color: #eee; /* Slightly lighter heading */
+			margin-top: 0;
+			margin-bottom: 10px;
+			font-size: 1.1em;
+		}
+
+		#agent-editor-view #agent-tools label {
+			width: auto; /* Override label width for checkboxes */
+			margin-right: 15px; /* More space */
+			margin-bottom: 8px;
+			display: inline-block;
+			color: #ccc; /* Keep muted color */
+			font-size: 0.9em; /* Smaller font for tool labels */
+		}
+
+		#agent-editor-view #agent-tools input[type="checkbox"] {
+			margin-right: 5px; /* Space between checkbox and label text */
+			vertical-align: middle;
+		}
+
+
+/* Flow Master Editor View Specifics */
+#flowmaster-editor-view {
+	/* Add specific styles for the state machine visualization here */
+}
+
+
+/* --- Node Editor Styles (from original FlowEdit) --- */
+#node-editor-container {
+	/* Inherits border, margin-top, height, overflow, position */
+	/* Background handled by #node-editor itself */
+	border: 1px solid #444; /* Darker border */
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+	#node-editor-container.hidden {
+		display: none;
+	}
+
+#node-editor {
+	flex-grow: 1;
+	overflow: hidden; /* Viewport */
+	background-color: #222; /* Darker background */
+	cursor: grab;
+	position: absolute; /* Position relative to #node-editor-container */
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0; /* Fill container */
+	/* Subtle grid pattern */
+	background-image: linear-gradient(rgba(255, 255, 255, 0.05) 2px, transparent 2px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 2px, transparent 2px);
+	background-size: 100px 100px; /* Base grid size */
+	background-position: 0 0; /* Initial position */
+}
+
+	#node-editor.panning {
+		cursor: grabbing;
+	}
+
+/* --- SVG Layer for Links --- */
+#link-svg-layer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none; /* Allow clicks to pass through to workspace/nodes */
+	z-index: 1; /* Below nodes (which have implicit higher z-index or explicit) */
+	overflow: visible; /* Allow paths to draw outside initial bounds if needed */
+	transform-origin: 0 0;
+}
+
+	#link-svg-layer path {
+		stroke-width: 2px;
+		stroke: #bbbbbb; /* Light gray for links */
+		fill: none;
+		transition: stroke 0.15s ease-in-out; /* Smooth transition for stroke color */
+	}
+
+		#link-svg-layer path.dragging-link-temp {
+			stroke: #007bff; /* Accent color for dragging link */
+			stroke-dasharray: 5, 5;
+		}
+
+		#link-svg-layer path.reconnecting-link {
+			opacity: 0.6; /* Slightly faded */
+			stroke: #f39c12; /* Orange/Yellow accent for reconnecting */
+			stroke-dasharray: 5, 5;
+		}
+		/* Style for linked paths (optional, could be bolder/different color) */
+		#link-svg-layer path.linked {
+			stroke-width: 3px;
+			stroke: #0f0;
+		}
+
+#workspace {
+	position: absolute; /* Relative for node positioning */
+	top: 0;
+	left: 0;
+	width: 500%; /* Large virtual canvas */
+	height: 500%;
+	background-color: #333; /* Darker base for grid */
+	/*Subtle grid pattern */
+	background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+	background-size: 20px 20px;
+	border: 1px solid #444;
+	box-sizing: border-box;
+	transform-origin: 0 0;
+	z-index: 0;
+}
+
+/* --- Node Styling --- */
+.node {
+	position: absolute;
+	background-color: #2c3e50; /* Deep blue-gray */
+	color: #e0e0e0; /* Light gray text */
+	border: 1px solid #444; /* Darker border */
+	border-radius: 6px; /* Slightly more rounded corners */
+	min-width: 180px; /* Increased min-width */
+	cursor: default;
+	user-select: none;
+	box-shadow: 0 3px 8px rgba(0,0,0,0.4); /* More prominent shadow */
+	display: flex; /* Use flex for layout */
+	flex-direction: column; /* Default vertical stack */
+	font-size: 0.9em;
+	z-index: 10; /* Ensure nodes are above links */
+	box-sizing: border-box;
+	transition: transform 0.1s ease-out, box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out; /* Smooth transitions */
+}
+
+	.node.dragging {
+		cursor: default;
+		opacity: 0.9; /* Less opacity change */
+		z-index: 1000;
+		box-shadow: 0 5px 15px rgba(0,0,0,0.8); /* Larger shadow when dragging */
+	}
+
+.node-header {
+	font-weight: 600; /* Semi-bold */
+	padding: 10px; /* Increased padding */
+	background-color: rgba(0, 0, 0, 0.3); /* Slightly darker header */
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	text-align: center;
+	cursor: grab;
+	border-radius: 5px 5px 0 0; /* Rounded top corners */
+	color: #ffffff; /* White header text */
+	font-size: 1em;
+}
+
+	.node-header:hover {
+		background-color: rgba(0, 0, 0, 0.25); /* Slightly darker header */
+	}
+
+.node-content {
+	display: flex;
+	padding: 8px; /* Padding around inputs/outputs */
+	flex-grow: 1;
+}
+
+.node-inputs, .node-outputs {
+	display: flex;
+	flex-direction: column; /* Stack sockets vertically by default */
+	padding: 8px 0; /* Spacing */
+}
+
+.node-inputs {
+	align-items: flex-start; /* Align input sockets left */
+	margin-right: auto; /* Push outputs to the right in horizontal */
+}
+
+.node-outputs {
+	align-items: flex-end; /* Align output sockets right */
+	margin-left: auto; /* Push inputs to the left in horizontal */
+}
+
+.node-socket {
+	display: flex;
+	align-items: center;
+	margin: 6px 0; /* Vertical spacing between sockets */
+	position: relative; /* For positioning the socket point */
+}
+
+.socket-point {
+	width: 14px; /* Slightly larger */
+	height: 14px;
+	background-color: #bbbbbb; /* Light gray default */
+	border: 1px solid #555; /* Darker border */
+	border-radius: 50%; /* Circle */
+	cursor: crosshair; /* Indicate connectability */
+	position: relative;
+	z-index: 11; /* Above node background */
+	box-shadow: 0 1px 3px rgba(0,0,0,0.3); /* Subtle shadow */
+	transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, transform 0.1s ease-out;
+}
+
+	.socket-point:hover {
+		background-color: #ffffff; /* White on hover */
+		border-color: #999;
+		transform: scale(1.1); /* Slight grow effect */
+	}
+
+	.socket-point.input {
+		background-color: #2ecc71; /* Green for inputs */
+		border-color: #27ae60;
+	}
+
+		.socket-point.input:hover {
+			background-color: #39d480; /* Lighter green on hover */
+		}
+
+	.socket-point.output {
+		background-color: #e74c3c; /* Red/Orange for outputs */
+		border-color: #c0392b;
+	}
+
+		.socket-point.output:hover {
+			background-color: #ec6f62; /* Lighter red/orange on hover */
+		}
+
+	.socket-point.connected {
+		/* Optional: style for connected sockets */
+		/* border-color: #007bff; */ /* Blue border */
+		/* box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); */ /* Blue glow */
+	}
+
+	.socket-point.dragging-start {
+		box-shadow: 0 0 8px rgba(0, 123, 255, 0.8); /* Strong glow when starting drag */
+	}
+
+
+.socket-label {
+	font-size: 0.85em;
+	color: #ccc; /* Muted text color */
+	margin: 0 5px; /* Space between point and label */
+}
+
+
+/* --- Horizontal Flow Specific Styles --- */
+.node.flow-horizontal .node-content {
+	flex-direction: row; /* Inputs and outputs side-by-side */
+	justify-content: space-between; /* Push inputs/outputs apart */
+	align-items: center; /* Vertically center content */
+}
+
+.node.flow-horizontal .node-inputs {
+	flex-direction: column; /* Stack input sockets vertically */
+	align-items: flex-start; /* Align input sockets left */
+	margin-right: 15px; /* More space between inputs and outputs */
+	padding: 0; /* Remove vertical padding */
+}
+
+.node.flow-horizontal .node-outputs {
+	flex-direction: column; /* Stack output sockets vertically */
+	align-items: flex-end; /* Align output sockets right */
+	margin-left: 15px;
+	padding: 0; /* Remove vertical padding */
+}
+
+.node.flow-horizontal .node-socket {
+	flex-direction: row; /* Label and point side-by-side */
+	margin: 6px 0; /* Vertical spacing between sockets */
+}
+
+.node.flow-horizontal .node-inputs .socket-point {
+	order: -1; /* Point on left */
+	margin-right: 8px; /* Space between point and label */
+	margin-left: -12px; /* Pull point onto the edge for better connection */
+	transform: none; /* Reset vertical transform */
+}
+
+.node.flow-horizontal .node-outputs .socket-point {
+	order: 1; /* Point on right */
+	margin-left: 8px; /* Space between point and label */
+	margin-right: -12px; /* Pull point onto the edge */
+	transform: none; /* Reset vertical transform */
+}
+
+
+/* --- Vertical Flow Specific Styles --- */
+.node.flow-vertical {
+	/* Default node layout is already column */
+}
+
+	.node.flow-vertical .node-content {
+		flex-direction: column; /* Ensure content stacks vertically */
+		align-items: stretch; /* Allow inputs/outputs to take width */
+	}
+
+	.node.flow-vertical .node-inputs,
+	.node.flow-vertical .node-outputs {
+		flex-direction: row; /* Sockets side-by-side */
+		justify-content: space-around; /* Distribute sockets horizontally */
+		width: 100%; /* Take full width */
+		padding: 0 8px; /* Padding inside */
+		margin: 0; /* Remove default margins */
+	}
+
+	.node.flow-vertical .node-inputs {
+		margin-bottom: 8px;
+	}
+	/* Space between inputs and outputs sections */
+	.node.flow-vertical .node-outputs {
+		margin-top: 8px;
+	}
+
+	.node.flow-vertical .node-socket {
+		flex-direction: column; /* Stack point and label vertically */
+		margin: 0 6px; /* Horizontal spacing between sockets */
+		align-items: center; /* Center point/label vertically within socket */
+	}
+
+	.node.flow-vertical .node-inputs .socket-point {
+		order: -1; /* Point on top */
+		margin-bottom: 8px; /* Space below point */
+		margin-top: -12px; /* Pull point onto the edge */
+		transform: none; /* Reset horizontal transform */
+	}
+
+	.node.flow-vertical .node-outputs .socket-point {
+		order: 1; /* Point on bottom */
+		margin-top: 8px; /* Space above point */
+		margin-bottom: -12px; /* Pull point onto the edge */
+		transform: none; /* Reset horizontal transform */
+	}
+
+
+/* --- Selection Rectangle --- */
+#selection-rect {
+	position: absolute;
+	border: 1px dashed #007bff; /* Blue dashed border */
+	background-color: rgba(0, 123, 255, 0.15); /* Semi-transparent blue */
+	display: none; /* Hidden by default */
+	pointer-events: none; /* Doesn't interfere with mouse events */
+	z-index: 100; /* Above nodes and links, below controls */
+	transform-origin: 0 0; /* Consistent with workspace/svg */
+}
+
+/* --- Selected Node Style --- */
+.node.selected {
+	outline: none; /* Remove default outline */
+	border-color: #007bff; /* Blue border */
+	box-shadow: 0 0 12px rgba(0, 123, 255, 0.7); /* Blue glow */
+	background-color: #34495e; /* Slightly different background or same */
+}
+
+	/* Ensure selected nodes are visually prominent when dragging */
+	.node.selected.dragging {
+		z-index: 1001; /* Slightly higher than normal dragging */
+	}
+
+/* Change cursor during reconnection */
+#node-editor.reconnecting {
+	cursor: alias;
+}
+
+
+/* --- Filesystem Browser View Styles --- */
+#filesystem-view {
+	/* Inherits base view styles */
+}
+
+#filesystem-controls {
+	margin-bottom: 15px;
+	padding: 10px 15px; /* Adjusted padding */
+	background-color: #282828; /* Darker background for controls */
+	border-radius: 5px;
+	display: flex; /* Arrange controls horizontally */
+	align-items: center;
+	gap: 10px; /* Space between items */
+	flex-wrap: wrap; /* Allow controls to wrap */
+}
+
+	#filesystem-controls button {
+		padding: 6px 12px; /* Adjusted padding */
+		/* Inherits dark button styles */
+		border: 1px solid #555;
+		background-color: #3a3a3a;
+		color: #fff;
+	}
+
+		#filesystem-controls button:hover:not(:disabled) {
+			background-color: #4a4a4a;
+		}
+
+		#filesystem-controls button:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+
+#current-path {
+	flex-grow: 1; /* Take up available space */
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; /* Monospaced font for path */
+	color: #bbb; /* Lighter color for path */
+	white-space: nowrap; /* Prevent path from wrapping */
+	overflow: hidden; /* Hide overflowing path */
+	text-overflow: ellipsis; /* Show ellipsis for overflow */
+	padding: 0 5px; /* Add slight padding */
+}
+
+#filesystem-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	border: 1px solid #444; /* Border around the list */
+	border-radius: 4px;
+	background-color: #1a1a1a; /* Dark background for the list area */
+	max-height: calc(100% - 120px); /* Adjust height based on controls/padding, give some buffer */
+	overflow-y: auto; /* Enable vertical scrolling */
+}
+
+	#filesystem-list li {
+		padding: 10px 15px; /* More padding */
+		border-bottom: 1px solid #333; /* Darker separator between items */
+		cursor: pointer;
+		display: flex; /* Use flex for layout */
+		justify-content: space-between; /* Name on left, size on right */
+		align-items: center;
+		color: #eee; /* Default text color */
+		font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; /* Monospaced font for entries */
+		font-size: 0.95em;
+		transition: background-color 0.2s ease-in-out;
+	}
+
+		#filesystem-list li:last-child {
+			border-bottom: none; /* No border on the last item */
+		}
+
+		#filesystem-list li:hover {
+			background-color: #282828; /* Highlight on hover */
+		}
+
+		/* Style for directories */
+		#filesystem-list li.directory {
+			font-weight: bold; /* Directories are bold */
+			color: #87ceeb; /* Sky blue color for directories */
+		}
+
+			/* Add a simple folder icon using pseudo-element */
+			#filesystem-list li.directory::before {
+				content: '📁 '; /* Folder emoji or other icon */
+				margin-right: 10px; /* Adjusted margin */
+				color: #ffcd40; /* Gold color for icon */
+				font-weight: normal; /* Icon font weight */
+			}
+
+		/* Style for files */
+		#filesystem-list li.file {
+			/* Default styles are fine, maybe slightly lighter color */
+			color: #ccc;
+		}
+
+			/* Add a simple file icon using pseudo-element */
+			#filesystem-list li.file::before {
+				content: '📄 '; /* File emoji or other icon */
+				margin-right: 10px; /* Adjusted margin */
+				color: #a9a9a9; /* Dark grey color for icon */
+				font-weight: normal;
+			}
+
+		/* NEW: Style for the entry name span */
+		#filesystem-list li .entry-name {
+			flex-grow: 1; /* Allow the name span to take up available space */
+			white-space: nowrap; /* Prevent name from wrapping */
+			overflow: hidden; /* Hide overflowing name */
+			text-overflow: ellipsis; /* Show ellipsis for overflow */
+		}
+
+
+.entry-size {
+	flex-shrink: 0; /* Prevent size from shrinking */
+	font-size: 0.8em; /* Smaller font for size */
+	color: #aaa; /* Muted color for size */
+	margin-left: 15px; /* More space from the name */
+}
+
+
+/* --- Arguments View Styles --- */
+#arguments-view {
+	/* Inherits base view styles */
+}
+
+	#arguments-view p {
+		margin-bottom: 15px;
+		font-size: 0.9em;
+		color: #bbb;
+	}
+
+#arguments-list-container {
+	margin-bottom: 20px;
+	max-height: 400px; /* Adjust as needed */
+	overflow-y: auto;
+	border: 1px solid #444;
+	padding: 10px;
+	border-radius: 4px;
+	background-color: #222; /* Darker background for the list area */
+}
+
+.argument-pair {
+	display: flex;
+	flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+	align-items: center;
+	gap: 10px; /* Space between items in the pair */
+	margin-bottom: 10px;
+	padding: 8px;
+	background-color: #282828; /* Slightly lighter than list container */
+	border-radius: 3px;
+	border: 1px solid #383838;
+}
+
+	.argument-pair label {
+		width: auto;
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		margin-bottom: 0; /* Override default */
+		cursor: pointer;
+		user-select: none;
+	}
+		.argument-pair label:hover {
+			transform: scale(1.15); /* Slight grow effect */
+		}
+
+			.argument-pair label:hover:active {
+				transform: scale(0.95); /* Slight shrink effect */
+			}
+
+	.argument-pair input[type="checkbox"] {
+		visibility: hidden;
+		width: 0px;
+		height: 0px;
+		margin-bottom: 0px;
+	}
+	.argument-pair input[type="checkbox"] {
+		margin-bottom: 0;
+	}
+
+	.argument-pair input[type="text"],
+	.argument-pair select {
+		flex: 1; /* Allow inputs to grow and shrink */
+		min-width: 120px; /* Minimum width before shrinking */
+		/* Overriding global input styles for this specific context */
+		width: auto;
+		margin-bottom: 0;
+		padding: 8px; /* Adjusted padding */
+	}
+
+	.argument-pair .remove-argument-btn {
+		padding: 6px 12px;
+		font-size: 0.85em;
+		background-color: #c0392b; /* Darker red */
+		color: white;
+		border: none;
+		border-radius: 3px;
+		cursor: pointer;
+		transition: background-color 0.2s ease;
+		flex-shrink: 0; /* Prevent button from shrinking */
+	}
+
+		.argument-pair .remove-argument-btn:hover {
+			background-color: #e74c3c; /* Lighter red on hover */
+			transform: scale(1.025); /* Slight grow effect */
+		}
+
+/* Styles for nested properties */
+.nested-container {
+	width: 100%;
+	padding: 10px;
+	margin-top: 10px;
+	background-color: #222;
+	border: 1px dashed #444;
+	border-radius: 4px;
+}
+
+.array-items-container {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.add-sub-property-btn {
+	padding: 6px 12px;
+	font-size: 0.85em;
+	background-color: #27ae60; /* Green */
+	color: white;
+	border: none;
+	border-radius: 3px;
+	cursor: pointer;
+	margin-top: 10px;
+	display: inline-block;
+}
+
+	.add-sub-property-btn:hover {
+		background-color: #2ecc71;
+	}
+
+
+/* Styles for buttons directly within #arguments-view (Add, Save, Back) */
+#arguments-view > button {
+	padding: 8px 15px;
+	cursor: pointer;
+	border: 1px solid #555;
+	border-radius: 4px;
+	background-color: #3a3a3a;
+	color: #ffffff;
+	transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+	margin-top: 10px;
+	margin-right: 10px;
+}
+
+	#arguments-view > button:hover:not(:disabled) {
+		background-color: #4a4a4a;
+		border-color: #666;
+	}
+
+	#arguments-view > button:active:not(:disabled) {
+		background-color: #5a5a5a;
+		box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+	}
+
+	#arguments-view > button:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		background-color: #3a3a3a;
+		border-color: #555;
+	}
+/* END --- Arguments View Styles --- */
+
+hr.demo-pulse {
+	border: none;
+	height: 8px;
+	background: #e74c3c; /* A nice red */
+	border-radius: 4px;
+	margin: 0.5rem 0;
+	margin-top: 17px;
+	overflow: revert-layer;
+	display: block;
+	animation: pulse-hr 0.9s cubic-bezier(0.42,0,0.58,1.0) 1;
+}
+
+@keyframes pulse-hr {
+	0% {
+		transform: scaleX(0);
+		opacity: 1;
+	}
+
+	50% {
+		transform: scaleX(1.05); /* Slightly wider */
+		opacity: 0.7; /* A bit faded */
+	}
+
+	100% {
+		transform: scaleX(1);
+		opacity: 1;
+	}
+}
+
+/* Modal Styles */
+.modal {
+	display: none; /* Hidden by default */
+	position: fixed; /* Stay in place */
+	z-index: 10000; /* Sit on top */
+	left: 0;
+	top: 0;
+	width: 100%; /* Full width */
+	height: 100%; /* Full height */
+	overflow: auto; /* Enable scroll if needed */
+	background-color: rgba(0,0,0,0.8); /* Black w/ more opacity */
+	backdrop-filter: blur(8px); /* Optional: blur background - stronger blur */
+	-webkit-backdrop-filter: blur(8px); /* Safari */
+	justify-content: center; /* Center horizontally */
+	align-items: center; /* Center vertically */
+	animation: fadeInModal 0.3s ease-out; /* Fade in animation */
+}
+
+@keyframes fadeInModal {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+.modal.active {
+	display: flex; /* Show the modal and use flex for centering */
+}
+
+.modal-content {
+	background-color: #282828; /* Dark background */
+	margin: auto; /* Auto margin for centering (flexbox handles this too) */
+	padding: 30px; /* More padding */
+	border: 1px solid #555; /* Darker border */
+	width: 90%; /* More responsive width */
+	max-width: 450px; /* Max width */
+	border-radius: 8px;
+	box-shadow: 0 8px 20px rgba(0,0,0,0.6); /* Stronger shadow */
+	position: relative; /* For close button positioning */
+	color: #eee; /* Light text */
+	animation: zoomInModal 0.3s ease-out; /* Zoom in animation */
+}
+
+@keyframes zoomInModal {
+	from {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+
+.modal-content h3 {
+	margin-top: 0;
+	margin-bottom: 20px; /* Space below heading */
+	color: #fff;
+	text-align: center; /* Center modal title */
+	font-size: 1.3em;
+	font-weight: 500;
+}
+
+.modal-content label {
+	display: block; /* Make labels block for vertical form layout in modal */
+	width: auto; /* Remove fixed width */
+	margin-bottom: 8px;
+	color: #ccc;
+	text-align: left; /* Align label text left */
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content textarea,
+.modal-content select {
+	width: 100%; /* Take full width */
+	padding: 12px; /* More padding */
+	margin-bottom: 20px; /* More space below */
+	border: 1px solid #555;
+	border-radius: 4px;
+	background-color: #333;
+	color: #eee;
+	box-sizing: border-box;
+	font-size: 1em;
+	transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.modal-content button {
+	padding: 12px 20px; /* More padding */
+	cursor: pointer;
+	border: 1px solid #666;
+	border-radius: 4px;
+	background-color: #007bff; /* Accent color for primary action */
+	color: #fff;
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	font-size: 1em;
+	font-weight: 500;
+	transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+	/* Add a secondary button style if needed later in HTML, e.g., class="secondary-btn" */
+	/* .modal-content button.secondary-btn {
+			background-color: #555;
+			border-color: #666;
+		}
+		.modal-content button.secondary-btn:hover {
+			background-color: #666;
+		} */
+
+
+	.modal-content button:hover:not(:disabled) {
+		background-color: #0056b3; /* Darker shade on hover */
+		border-color: #004085;
+	}
+
+	.modal-content button:active:not(:disabled) {
+		background-color: #004085;
+	}
+
+
+.close-button {
+	color: #aaa;
+	font-size: 28px;
+	font-weight: bold;
+	position: absolute;
+	top: 15px; /* Position relative to new padding */
+	right: 20px; /* Position relative to new padding */
+	cursor: pointer;
+	transition: color 0.2s ease-in-out;
+}
+
+	.close-button:hover,
+	.close-button:focus {
+		color: #fff;
+		text-decoration: none;
+	}
+
+/* Styles for dynamically added arguments in the modal */
+#modal-arguments-container {
+	margin-top: 15px;
+	margin-bottom: 15px;
+	max-height: 250px; /* Limit height and allow scroll */
+	overflow-y: auto;
+	padding-right: 10px; /* Space for scrollbar */
+}
+
+.modal-argument-pair {
+	margin-bottom: 15px;
+}
+
+	.modal-argument-pair label {
+		display: block;
+		width: 100%;
+		margin-bottom: 5px;
+		color: #ccc;
+		font-weight: bold;
+		font-size: 0.9em;
+		text-align: left;
+	}
+
+	.modal-argument-pair input {
+		width: 100%;
+		/* It will inherit styles from .modal-content input */
+		margin-bottom: 0; /* Override margin from general rule */
+	}
+
+/* Hide query container by default, show it via JS */
+#modal-query-container {
+	display: none;
+	margin-bottom: 15px;
+}
+
+/* END Modal Styles */
