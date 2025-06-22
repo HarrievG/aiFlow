@@ -162,7 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
 			type: 'generic',
 			prompt: '',
 			tools: [],
-			sub_agents: []
+			sub_agents: [],
+			outputs: { format: { type: 'object', properties: {}, required: [] } } // Initialize outputs
 		};
 		renderAgentList(state.currentWorkflow.agents); // Refresh list
 		// Optionally jump directly to editing the new agent
@@ -170,11 +171,32 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 
 	// Agent Editor Buttons
+	dom.editAgentOutputsBtn.addEventListener('click', () => {
+		if (!state.currentWorkflow || !state.currentAgentId) {
+			alert('No agent selected for editing outputs.');
+			return;
+		}
+		const agent = state.currentWorkflow.agents[state.currentAgentId];
+		if (!agent) {
+			alert('Current agent data not found.');
+			return;
+		}
+		// Ensure outputs structure exists (should be by addAgent/editAgent, but defensive)
+		if (!agent.outputs || typeof agent.outputs.format !== 'object') {
+			agent.outputs = { format: { type: 'object', properties: {}, required: [] } };
+		}
+
+		state.currentEditingContext = 'agent';
+		state.currentEditingAgentId = state.currentAgentId;
+		renderOutputs(agent.outputs); // from output_editor.js
+		showView('structured-outputs');
+	});
+
 	dom.saveAgentDetailsBtn.addEventListener('click', () => {
 		if (!state.currentWorkflow || !state.currentAgentId) return;
 		// Update the specific agent in the current workflow state
 		const agentId = state.currentAgentId;
-		const agent = state.currentWorkflow.agents[agentId];
+		const agent = state.currentWorkflow.agents[agentId]; // agent.outputs is part of this object
 		if (agent) {
 			agent.name = dom.agentNameInput.value;
 			agent.type = dom.agentTypeSelect.value;
@@ -186,21 +208,19 @@ document.addEventListener('DOMContentLoaded', () => {
 			});
 
 			// Sub-agents logic would go here if implemented
+			// agent.outputs is already part of the 'agent' object due to direct state manipulation by output_editor.js
 
-
-			sendApiRequest('saveAgent', agent, (response) => {
+			sendApiRequest('saveAgent', agent, (response) => { // 'agent' here includes 'outputs'
 				if (response.status === 'success') {
-					console.log('agent saved:', response.payload.agent_id);
+					console.log('Agent saved (with outputs):', response.payload.agent_id);
 				} else {
 					console.error('Save failed:', response.payload.message);
 					alert('Error saving agent: ' + response.payload.message);
 				}
 			});
 
-			console.log('Agent details updated in state:', agent);
+			console.log('Agent details updated in state (including outputs):', agent);
 			alert('Agent saved');
-
-			// No need to save workflow immediately, user clicks workflow save button
 		}
 	});
 
@@ -282,13 +302,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	dom.saveBtn.addEventListener('click', saveLayoutToWorkflow);
 	dom.clearBtn.addEventListener('click', () => clearWorkspace(true));
-	dom.editOutputsCtrlBtn.addEventListener('click', () => {
-		dom.nodeEditorContainer.classList.add('hidden');
-		showView('structured-outputs');
-		renderOutputs(state.currentWorkflow.outputs);
-	});
-	dom.editOutputsCtrlBtn.addEventListener('click', () => {
+	dom.editOutputsCtrlBtn.addEventListener('click', () => { // This is the GLOBAL outputs button from graph view
+		if (!state.currentWorkflow) {
+			alert('Load or create a workflow first.');
+			return;
+		}
+		// Ensure workflow outputs structure exists
+		if (!state.currentWorkflow.outputs || typeof state.currentWorkflow.outputs.format !== 'object') {
+			state.currentWorkflow.outputs = { format: { type: 'object', properties: {}, required: [] } };
+		}
 
+		state.currentEditingContext = 'workflow';
+		state.currentEditingAgentId = null;
+		renderOutputs(state.currentWorkflow.outputs); // from output_editor.js
+		showView('structured-outputs');
 	});
 
 	// --- Initial View ---
@@ -322,6 +349,19 @@ export function editAgent(agentId) {
 	}
 	state.currentAgentId = agentId; // Store the ID of the agent being edited
 	const agent = state.currentWorkflow.agents[agentId];
+
+	// Ensure agent.outputs exists and has the basic structure
+	// This handles cases where an agent might be loaded from a backend that didn't have this field,
+	// or if it's an older workflow being loaded.
+	if (typeof agent.outputs === 'undefined') {
+		console.log(`Initializing outputs for agent ${agentId} as it was undefined.`);
+		agent.outputs = { format: { type: 'object', properties: {}, required: [] } };
+	} else if (agent.outputs === null || typeof agent.outputs.format !== 'object' ||
+	           !agent.outputs.format.hasOwnProperty('properties') || !agent.outputs.format.hasOwnProperty('required')) {
+		console.warn(`Correcting malformed outputs structure for agent ${agentId}. Current value:`, JSON.stringify(agent.outputs));
+		agent.outputs = { format: { type: 'object', properties: {}, required: [] } };
+	}
+
 
 	if (agent.type === 'master') {
 		// Show specialized Flow Master editor

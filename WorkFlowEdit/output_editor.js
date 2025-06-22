@@ -10,72 +10,93 @@ import { showView } from './ui.js';
  */
 export function initOutputEditor() {
 	dom.addOutputPairBtn.addEventListener('click', () => {
-		// Add a new root-level property to the format object
-		if (!state.currentWorkflow.outputs) {
-			state.currentWorkflow.outputs = { format: { type: 'object', properties: {}, required: [] } };
+		let targetOutputsObject;
+		if (state.currentEditingContext === 'agent' && state.currentWorkflow && state.currentWorkflow.agents && state.currentWorkflow.agents[state.currentEditingAgentId]) {
+			targetOutputsObject = state.currentWorkflow.agents[state.currentEditingAgentId].outputs;
+		} else if (state.currentEditingContext === 'workflow' && state.currentWorkflow) {
+			targetOutputsObject = state.currentWorkflow.outputs;
+		} else {
+			console.error('Cannot add output pair: Invalid context or missing data.');
+			alert('Error: Could not determine where to add the output item.');
+			return;
 		}
 
-		const newKey = `new_property_${Object.keys(state.currentWorkflow.outputs.format.properties).length}`;
-		state.currentWorkflow.outputs.format.properties[newKey] = { type: 'string' }; // Default to string
-		renderOutputs(state.currentWorkflow.outputs);
+		if (!targetOutputsObject) { // Should be initialized by calling functions
+			console.error('Target outputs object is null/undefined before adding pair.');
+			targetOutputsObject = { format: { type: 'object', properties: {}, required: [] } };
+			// Assign it back if it was workflow outputs
+			if (state.currentEditingContext === 'workflow') state.currentWorkflow.outputs = targetOutputsObject;
+			// For agent, it should have been initialized when agent was loaded/created.
+		}
+        if (!targetOutputsObject.format) targetOutputsObject.format = { type: 'object', properties: {}, required: [] };
+        if (!targetOutputsObject.format.properties) targetOutputsObject.format.properties = {};
+
+
+		const newKey = `new_property_${Object.keys(targetOutputsObject.format.properties).length}`;
+		targetOutputsObject.format.properties[newKey] = { type: 'string' };
+		renderOutputs(targetOutputsObject); // Pass the specific object
 	});
 
 	dom.saveOutputsBtn.addEventListener('click', () => {
-		// The state is already updated by the input event listeners.
-		// We just need to send the current state to the backend.
 		if (!state.currentWorkflow) {
 			alert('No workflow loaded.');
 			return;
 		}
-		// The save is part of the main workflow save, but we can provide feedback.
-		console.log('Outputs saved to local workflow state:', state.currentWorkflow.outputs);
-		alert('Outputs saved in memory. Remember to save the entire workflow to persist changes.');
+		if (state.currentEditingContext === 'agent') {
+			if (!state.currentEditingAgentId || !state.currentWorkflow.agents[state.currentEditingAgentId]) {
+				alert('Error: No agent selected for saving outputs.');
+				return;
+			}
+			console.log('Agent outputs saved to local agent state:', state.currentWorkflow.agents[state.currentEditingAgentId].outputs);
+			alert('Agent outputs saved in memory. Remember to save the agent details to persist these changes.');
+		} else {
+			console.log('Workflow outputs saved to local workflow state:', state.currentWorkflow.outputs);
+			alert('Workflow outputs saved in memory. Remember to save the entire workflow to persist changes.');
+		}
 	});
 
 	dom.backToWorkflowFromOutputsBtn.addEventListener('click', () => {
-		// This is a simplified navigation, assuming the user was in the workflow editor.
-		// A more robust solution might track navigation history.
-		//const event = new CustomEvent('show-view', { detail: { viewId: 'workflow-editor' } });
-		//document.dispatchEvent(event);
-
-		showView('workflow-editor');
+		if (state.currentEditingContext === 'agent') {
+			showView('agent-editor'); // Go back to the agent editor
+		} else {
+			showView('workflow-editor'); // Default back to workflow editor (graph view or details)
+		}
 	});
 }
 
 /**
  * Renders the entire Outputs/structured output editor.
- * @param {object} args - The Outputs object from the workflow, expected to have a 'format' property.
+ * @param {object} dataObject - The specific outputs object to render (e.g., workflow.outputs or agent.outputs).
  */
-export function renderOutputs(args) {
+export function renderOutputs(dataObject) {
 	const container = dom.outputsListContainer;
 	container.innerHTML = ''; // Clear previous content
 
-	// Ensure the basic structure exists
-	if (!args || !args.format || args.format.type !== 'object') {
-		// Create a default structure if it's missing or invalid
-		args = {
-			format: {
-				type: 'object',
-				properties: {},
-				required: []
-			}
-		};
-		if (state.currentWorkflow) {
-			state.currentWorkflow.outputs = args;
-		}
+	if (!dataObject || !dataObject.format || dataObject.format.type !== 'object') {
+		// Initialize if it's somehow malformed or null. The calling context should ensure it's valid.
+		dataObject = { format: { type: 'object', properties: {}, required: [] } };
+		// Note: This change to dataObject might not persist if the original reference wasn't updated by the caller.
+		// It's better if the caller (e.g., in main.js) ensures dataObject is always valid.
+		console.warn("RenderOutputs called with invalid dataObject. Initializing locally for render.");
 	}
 
-	const format = args.format;
+	const format = dataObject.format;
 	const properties = format.properties || {};
 	const required = new Set(format.required || []);
 
-	for (const key in properties) {
-		if (Object.hasOwnProperty.call(properties, key)) {
-			const property = properties[key];
-			const propertyElement = createPropertyElement(key, property, required.has(key), [key]);
-			container.appendChild(propertyElement);
-		}
-	}
+    if (Object.keys(properties).length === 0) {
+        const emptyMsg = document.createElement('p');
+        emptyMsg.textContent = "No output items defined yet. Click 'Add Item' to start.";
+        container.appendChild(emptyMsg);
+    } else {
+        for (const key in properties) {
+            if (Object.hasOwnProperty.call(properties, key)) {
+                const property = properties[key];
+                const propertyElement = createPropertyElement(key, property, required.has(key), [key], dataObject);
+                container.appendChild(propertyElement);
+            }
+        }
+    }
 }
 
 /**
@@ -84,10 +105,11 @@ export function renderOutputs(args) {
  * @param {string} key - The name of the property.
  * @param {object} property - The schema object for the property.
  * @param {boolean} isRequired - Whether the property is in the 'required' array.
- * @param {string[]} path - The path to this property from the root (e.g., ['user', 'address']).
+ * @param {string[]} path - The path to this property from the root.
+ * @param {object} dataObject - The specific outputs object being edited.
  * @returns {HTMLElement} The created DOM element for the property.
  */
-function createPropertyElement(key, property, isRequired, path) {
+function createPropertyElement(key, property, isRequired, path, dataObject) {
 	const propDiv = document.createElement('div');
 	propDiv.classList.add('output-pair');
 	if (path.length > 1) {
@@ -95,7 +117,6 @@ function createPropertyElement(key, property, isRequired, path) {
 		propDiv.classList.add('nested-property');
 	}
 
-	// --- Key Input ---
 	const keyInput = document.createElement('input');
 	keyInput.type = 'text';
 	keyInput.value = key;
@@ -103,55 +124,48 @@ function createPropertyElement(key, property, isRequired, path) {
 	keyInput.addEventListener('change', (e) => {
 		const newKey = e.target.value;
 		if (newKey === key || !newKey) return;
-		updatePropertyKey(path, newKey);
-		renderOutputs(state.currentWorkflow.outputs); // Re-render to reflect change
+		updatePropertyKey(path, newKey, dataObject);
+		renderOutputs(dataObject);
 	});
 
-	// --- Type Selector ---
 	const typeSelect = document.createElement('select');
 	const types = ['string', 'number', 'boolean', 'object', 'array'];
 	types.forEach(t => {
 		const option = document.createElement('option');
 		option.value = t;
 		option.textContent = t.charAt(0).toUpperCase() + t.slice(1);
-		if (t === property.type) {
-			option.selected = true;
-		}
+		if (t === property.type) option.selected = true;
 		typeSelect.appendChild(option);
 	});
 	typeSelect.addEventListener('change', (e) => {
 		const newType = e.target.value;
-		updatePropertyValue(path, 'type', newType);
-		// If changing to object/array, add default structure
+		updatePropertyValue(path, 'type', newType, dataObject);
 		if (newType === 'object') {
-			updatePropertyValue(path, 'properties', {});
-			updatePropertyValue(path, 'required', []);
+			updatePropertyValue(path, 'properties', {}, dataObject);
+			updatePropertyValue(path, 'required', [], dataObject);
 		} else if (newType === 'array') {
-			updatePropertyValue(path, 'items', { type: 'string' }); // Default array of strings
+			updatePropertyValue(path, 'items', { type: 'string' }, dataObject);
 		}
-		renderOutputs(state.currentWorkflow.outputs); // Re-render to show new fields
+		renderOutputs(dataObject);
 	});
 
-	// --- Required Checkbox ---
 	const requiredLabel = document.createElement('label');
 	requiredLabel.textContent = 'Required';
 	const requiredCheckbox = document.createElement('input');
 	requiredCheckbox.type = 'checkbox';
 	requiredCheckbox.checked = isRequired;
 	requiredCheckbox.addEventListener('change', (e) => {
-		const isChecked = e.target.checked;
-		updateRequiredStatus(path, isChecked);
+		updateRequiredStatus(path, e.target.checked, dataObject);
+		// renderOutputs(dataObject); // Usually not needed just for required status
 	});
 	requiredLabel.prepend(requiredCheckbox);
 
-
-	// --- Remove Button ---
 	const removeBtn = document.createElement('button');
 	removeBtn.textContent = 'Remove';
 	removeBtn.classList.add('remove-output-btn');
 	removeBtn.addEventListener('click', () => {
-		deleteProperty(path);
-		renderOutputs(state.currentWorkflow.outputs);
+		deleteProperty(path, dataObject);
+		renderOutputs(dataObject);
 	});
 
 	propDiv.appendChild(keyInput);
@@ -159,76 +173,83 @@ function createPropertyElement(key, property, isRequired, path) {
 	propDiv.appendChild(requiredLabel);
 	propDiv.appendChild(removeBtn);
 
-	// --- Handle Nested Structures ---
 	if (property.type === 'object') {
 		const nestedContainer = document.createElement('div');
 		nestedContainer.classList.add('nested-container');
 		const subProperties = property.properties || {};
 		const subRequired = new Set(property.required || []);
-
 		for (const subKey in subProperties) {
 			const subProperty = subProperties[subKey];
-			const subElement = createPropertyElement(subKey, subProperty, subRequired.has(subKey), [...path, subKey]);
+			const subElement = createPropertyElement(subKey, subProperty, subRequired.has(subKey), [...path, subKey], dataObject);
 			nestedContainer.appendChild(subElement);
 		}
-
 		const addSubBtn = document.createElement('button');
 		addSubBtn.textContent = 'Add Property';
 		addSubBtn.classList.add('add-sub-property-btn');
 		addSubBtn.addEventListener('click', () => {
 			const newSubKey = `new_sub_${Object.keys(subProperties).length}`;
-			updatePropertyValue([...path, newSubKey], 'type', 'string'); // Add as string by default
-			renderOutputs(state.currentWorkflow.outputs);
+            // Ensure the parent object 'properties' exists before adding to it
+            let parentPropObj = getPropertyRef(path, dataObject)[path[path.length-1]];
+            if (!parentPropObj.properties) { // parentPropObj is the object itself, e.g. property = {type: 'object'}
+                parentPropObj.properties = {};
+            }
+			updatePropertyValue([...path, newSubKey], 'type', 'string', dataObject);
+			renderOutputs(dataObject);
 		});
 		nestedContainer.appendChild(addSubBtn);
 		propDiv.appendChild(nestedContainer);
-
 	} else if (property.type === 'array') {
 		const arrayContainer = document.createElement('div');
 		arrayContainer.classList.add('nested-container', 'array-items-container');
 		const itemsSchema = property.items || { type: 'string' };
-
 		const itemsLabel = document.createElement('span');
 		itemsLabel.textContent = 'Items Type:';
 		arrayContainer.appendChild(itemsLabel);
-
 		const itemsTypeSelect = document.createElement('select');
-		// For simplicity, only allowing primitive types in arrays for now. Can be expanded.
 		const itemTypes = ['string', 'number', 'boolean'];
 		itemTypes.forEach(t => {
 			const option = document.createElement('option');
 			option.value = t;
 			option.textContent = t.charAt(0).toUpperCase() + t.slice(1);
-			if (t === itemsSchema.type) {
-				option.selected = true;
-			}
+			if (t === itemsSchema.type) option.selected = true;
 			itemsTypeSelect.appendChild(option);
 		});
 		itemsTypeSelect.addEventListener('change', (e) => {
-			updatePropertyValue(path, 'items', { type: e.target.value });
-			renderOutputs(state.currentWorkflow.outputs);
+			updatePropertyValue(path, 'items', { type: e.target.value }, dataObject);
+			renderOutputs(dataObject);
 		});
 		arrayContainer.appendChild(itemsTypeSelect);
 		propDiv.appendChild(arrayContainer);
 	}
-
 	return propDiv;
 }
 
+// --- Helper functions to manipulate the provided dataObject ---
 
-// --- Helper functions to manipulate the state object ---
-
-function getPropertyRef(path) {
-	let current = state.currentWorkflow.outputs.format.properties;
+function getPropertyRef(path, dataObject) {
+	let current = dataObject.format.properties;
 	for (let i = 0; i < path.length - 1; i++) {
+        if (!current[path[i]]) { // Defensive: create path if it doesn't exist
+            current[path[i]] = { type: 'object', properties: {}, required: [] };
+        }
 		current = current[path[i]].properties;
+        if (!current) { // If properties itself is missing after drilling down
+            current = {}; // This assignment might be lost if not careful with references
+            // This indicates an issue with how parent objects are structured or initialized
+            console.error("getPropertyRef: encountered undefined properties at path", path.slice(0, i+1));
+            // To fix, ensure objects always have .properties, e.g. current[path[i]].properties = {}
+            // For now, we'll let it potentially fail or operate on a temporary object
+        }
 	}
 	return current;
 }
 
-function getParentRequiredRef(path) {
-	let current = state.currentWorkflow.outputs.format;
+function getParentRequiredRef(path, dataObject) {
+	let current = dataObject.format;
 	for (let i = 0; i < path.length - 1; i++) {
+        if (!current.properties[path[i]]) { // Defensive
+             current.properties[path[i]] = { type: 'object', properties: {}, required: [] };
+        }
 		current = current.properties[path[i]];
 	}
 	if (!current.required) {
@@ -237,54 +258,69 @@ function getParentRequiredRef(path) {
 	return current.required;
 }
 
-function updatePropertyValue(path, key, value) {
+function updatePropertyValue(path, key, value, dataObject) {
 	const propName = path[path.length - 1];
-	const parent = getPropertyRef(path);
-	if (!parent[propName]) {
-		parent[propName] = {};
+	const parentProperties = getPropertyRef(path, dataObject); // This gets parent's 'properties' object
+	if (!parentProperties[propName]) {
+		parentProperties[propName] = {};
 	}
-	parent[propName][key] = value;
+	parentProperties[propName][key] = value;
+
+    // If setting type to 'object', initialize 'properties' and 'required'
+    if (key === 'type' && value === 'object') {
+        if (!parentProperties[propName].properties) {
+            parentProperties[propName].properties = {};
+        }
+        if (!parentProperties[propName].required) {
+            parentProperties[propName].required = [];
+        }
+    }
+    // If setting type to 'array', initialize 'items'
+    else if (key === 'type' && value === 'array') {
+        if (!parentProperties[propName].items) {
+            parentProperties[propName].items = { type: 'string' }; // Default to array of strings
+        }
+    }
 }
 
-function updatePropertyKey(path, newKey) {
+function updatePropertyKey(path, newKey, dataObject) {
 	const oldKey = path[path.length - 1];
-	const parent = getPropertyRef(path);
-	if (parent[newKey]) {
-		alert('Error: Property with this name already exists.');
+	const parentProperties = getPropertyRef(path, dataObject);
+	if (newKey !== oldKey && parentProperties[newKey]) {
+		alert('Error: Property with this name already exists in this object.');
 		return;
 	}
-	parent[newKey] = parent[oldKey];
-	delete parent[oldKey];
+    if (oldKey === newKey) return;
 
-	// Update required array if necessary
-	const requiredArray = getParentRequiredRef(path);
+	parentProperties[newKey] = parentProperties[oldKey];
+	delete parentProperties[oldKey];
+
+	const requiredArray = getParentRequiredRef(path, dataObject);
 	const reqIndex = requiredArray.indexOf(oldKey);
 	if (reqIndex > -1) {
-		requiredArray[reqIndex] = newKey;
+		requiredArray.splice(reqIndex, 1, newKey); // Replace oldKey with newKey
 	}
 }
 
-function deleteProperty(path) {
+function deleteProperty(path, dataObject) {
 	const key = path[path.length - 1];
-	const parent = getPropertyRef(path);
-	delete parent[key];
+	const parentProperties = getPropertyRef(path, dataObject);
+	delete parentProperties[key];
 
-	// Remove from required array
-	const requiredArray = getParentRequiredRef(path);
+	const requiredArray = getParentRequiredRef(path, dataObject);
 	const reqIndex = requiredArray.indexOf(key);
 	if (reqIndex > -1) {
 		requiredArray.splice(reqIndex, 1);
 	}
 }
 
-function updateRequiredStatus(path, isRequired) {
+function updateRequiredStatus(path, isChecked, dataObject) {
 	const key = path[path.length - 1];
-	const requiredArray = getParentRequiredRef(path);
+	const requiredArray = getParentRequiredRef(path, dataObject);
 	const reqIndex = requiredArray.indexOf(key);
-
-	if (isRequired && reqIndex === -1) {
+	if (isChecked && reqIndex === -1) {
 		requiredArray.push(key);
-	} else if (!isRequired && reqIndex > -1) {
+	} else if (!isChecked && reqIndex > -1) {
 		requiredArray.splice(reqIndex, 1);
 	}
 }

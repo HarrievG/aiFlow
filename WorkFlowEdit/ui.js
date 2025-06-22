@@ -32,6 +32,19 @@ export function showView(viewId) {
 		sendApiRequest('listWorkflows', {}, renderWorkflowList);
 	} else if (viewId === 'filesystem') {
 		navigateToPath(state.currentFilesystemPath);
+	} else if (viewId === 'structured-outputs') {
+		// Dynamically set the title of the shared output editor
+		const outputEditorTitle = dom.outputsView.querySelector('h2'); // Assuming the h2 is the main title
+		if (outputEditorTitle) {
+			if (state.currentEditingContext === 'agent' && state.currentWorkflow && state.currentWorkflow.agents && state.currentWorkflow.agents[state.currentEditingAgentId]) {
+				const agentName = state.currentWorkflow.agents[state.currentEditingAgentId].name;
+				outputEditorTitle.textContent = `Outputs for Agent: ${agentName}`;
+			} else if (state.currentEditingContext === 'workflow') {
+				outputEditorTitle.textContent = 'Workflow Outputs';
+			} else {
+				outputEditorTitle.textContent = 'Structured Outputs'; // Default/fallback
+			}
+		}
 	}
 
 	state.currentViewId = viewId
