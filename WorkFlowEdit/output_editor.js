@@ -149,16 +149,23 @@ function createPropertyElement(key, property, isRequired, path, dataObject) {
 		renderOutputs(dataObject);
 	});
 
-	const requiredLabel = document.createElement('label');
-	requiredLabel.textContent = 'Required';
 	const requiredCheckbox = document.createElement('input');
 	requiredCheckbox.type = 'checkbox';
 	requiredCheckbox.checked = isRequired;
+	requiredCheckbox.id = `required-${path.join('-')}-${key}`; // Unique ID for the checkbox
 	requiredCheckbox.addEventListener('change', (e) => {
 		updateRequiredStatus(path, e.target.checked, dataObject);
-		// renderOutputs(dataObject); // Usually not needed just for required status
+		// No full re-render, CSS will handle visual state change
 	});
-	requiredLabel.prepend(requiredCheckbox);
+
+	// Create a wrapper for the icon and make it a label for the checkbox
+	const requiredIconToggle = document.createElement('label');
+	requiredIconToggle.classList.add('required-icon-toggle');
+	requiredIconToggle.setAttribute('for', requiredCheckbox.id);
+	// The actual icon will be styled using CSS pseudo-elements on this label
+	// or on a span inside it if more complexity is needed.
+	// For now, the label itself will act as the clickable icon area.
+	requiredIconToggle.appendChild(requiredCheckbox); // Checkbox is visually hidden, but functional
 
 	const removeBtn = document.createElement('button');
 	removeBtn.textContent = 'Remove';
@@ -170,7 +177,7 @@ function createPropertyElement(key, property, isRequired, path, dataObject) {
 
 	propDiv.appendChild(keyInput);
 	propDiv.appendChild(typeSelect);
-	propDiv.appendChild(requiredLabel);
+	propDiv.appendChild(requiredIconToggle); // Add the new icon toggle
 	propDiv.appendChild(removeBtn);
 
 	if (property.type === 'object') {
