@@ -1,0 +1,179 @@
+/* Modal Styles */
+.modal {
+	display: none; /* Hidden by default */
+	position: fixed; /* Stay in place */
+	z-index: 10000; /* Sit on top */
+	left: 0;
+	top: 0;
+	width: 100%; /* Full width */
+	height: 100%; /* Full height */
+	overflow: auto; /* Enable scroll if needed */
+	background-color: rgba(0,0,0,0.8); /* Black w/ more opacity */
+	backdrop-filter: blur(8px); /* Optional: blur background - stronger blur */
+	-webkit-backdrop-filter: blur(8px); /* Safari */
+	justify-content: center; /* Center horizontally */
+	align-items: center; /* Center vertically */
+	animation: fadeInModal 0.3s ease-out; /* Fade in animation */
+}
+
+@keyframes fadeInModal {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+.modal.active {
+	display: flex; /* Show the modal and use flex for centering */
+}
+
+.modal-content {
+	background-color: #282828; /* Dark background */
+	margin: auto; /* Auto margin for centering (flexbox handles this too) */
+	padding: 30px; /* More padding */
+	border: 1px solid #555; /* Darker border */
+	width: 90%; /* More responsive width */
+	max-width: 450px; /* Max width */
+	border-radius: 8px;
+	box-shadow: 0 8px 20px rgba(0,0,0,0.6); /* Stronger shadow */
+	position: relative; /* For close button positioning */
+	color: #eee; /* Light text */
+	animation: zoomInModal 0.3s ease-out; /* Zoom in animation */
+}
+
+@keyframes zoomInModal {
+	from {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+
+.modal-content h3 {
+	margin-top: 0;
+	margin-bottom: 20px; /* Space below heading */
+	color: #fff;
+	text-align: center; /* Center modal title */
+	font-size: 1.3em;
+	font-weight: 500;
+}
+
+.modal-content label {
+	display: block; /* Make labels block for vertical form layout in modal */
+	width: auto; /* Remove fixed width */
+	margin-bottom: 8px;
+	color: #ccc;
+	text-align: left; /* Align label text left */
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content textarea,
+.modal-content select {
+	width: 100%; /* Take full width */
+	padding: 12px; /* More padding */
+	margin-bottom: 20px; /* More space below */
+	border: 1px solid #555;
+	border-radius: 4px;
+	background-color: #333;
+	color: #eee;
+	box-sizing: border-box;
+	font-size: 1em;
+	transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.modal-content button {
+	padding: 12px 20px; /* More padding */
+	cursor: pointer;
+	border: 1px solid #666;
+	border-radius: 4px;
+	background-color: #007bff; /* Accent color for primary action */
+	color: #fff;
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	font-size: 1em;
+	font-weight: 500;
+	transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+	/* Add a secondary button style if needed later in HTML, e.g., class="secondary-btn" */
+	/* .modal-content button.secondary-btn {
+			background-color: #555;
+			border-color: #666;
+		}
+		.modal-content button.secondary-btn:hover {
+			background-color: #666;
+		} */
+
+
+	.modal-content button:hover:not(:disabled) {
+		background-color: #0056b3; /* Darker shade on hover */
+		border-color: #004085;
+	}
+
+	.modal-content button:active:not(:disabled) {
+		background-color: #004085;
+	}
+
+
+.close-button {
+	color: #aaa;
+	font-size: 28px;
+	font-weight: bold;
+	position: absolute;
+	top: 15px; /* Position relative to new padding */
+	right: 20px; /* Position relative to new padding */
+	cursor: pointer;
+	transition: color 0.2s ease-in-out;
+}
+
+	.close-button:hover,
+	.close-button:focus {
+		color: #fff;
+		text-decoration: none;
+	}
+
+/* Styles for dynamically added arguments in the modal */
+#modal-arguments-container {
+	margin-top: 15px;
+	margin-bottom: 15px;
+	max-height: 250px; /* Limit height and allow scroll */
+	overflow-y: auto;
+	padding-right: 10px; /* Space for scrollbar */
+}
+
+.modal-argument-pair {
+	margin-bottom: 15px;
+}
+
+	.modal-argument-pair label {
+		display: block;
+		width: 100%;
+		margin-bottom: 5px;
+		color: #ccc;
+		font-weight: bold;
+		font-size: 0.9em;
+		text-align: left;
+	}
+
+	.modal-argument-pair input {
+		width: 100%;
+		/* It will inherit styles from .modal-content input */
+		margin-bottom: 0; /* Override margin from general rule */
+	}
+
+/* Hide query container by default, show it via JS */
+#modal-query-container {
+	display: none;
+	margin-bottom: 15px;
+}
+
+/* END Modal Styles */

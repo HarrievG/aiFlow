@@ -1,0 +1,146 @@
+/* --- Arguments View Styles --- */
+#arguments-view {
+	/* Inherits base view styles */
+}
+
+	#arguments-view p {
+		margin-bottom: 15px;
+		font-size: 0.9em;
+		color: #bbb;
+	}
+
+#arguments-list-container {
+	margin-bottom: 20px;
+	max-height: 400px; /* Adjust as needed */
+	overflow-y: auto;
+	border: 1px solid #444;
+	padding: 10px;
+	border-radius: 4px;
+	background-color: #222; /* Darker background for the list area */
+}
+
+.argument-pair {
+	display: flex;
+	align-items: center;
+	gap: 10px; /* Space between items in the pair */
+	margin-bottom: 10px;
+	padding: 8px;
+	background-color: #282828; /* Slightly lighter than list container */
+	border-radius: 3px;
+	border: 1px solid #383838;
+}
+
+	.argument-pair label {
+		width: auto;
+		font-size: 32px;
+		color: rgb(25,0,0);
+		background: #00000000;
+		margin-bottom: 0px;
+		user-select: none;
+		cursor: pointer;
+	}
+
+		.argument-pair label:hover {
+			transform: scale(1.15); /* Slight grow effect */
+		}
+
+			.argument-pair label:hover:active {
+				transform: scale(0.95); /* Slight shrink effect */
+			}
+
+	.argument-pair input[type="checkbox"] {
+		visibility: hidden;
+		width: 0px;
+		height: 0px;
+		margin-bottom: 0px;
+	}
+
+	.argument-pair input[type="text"] {
+		flex: 1; /* Allow inputs to grow and shrink */
+		min-width: 100px; /* Minimum width before shrinking */
+		/* Overriding global input styles for this specific context */
+		width: auto;
+		margin-bottom: 0;
+		padding: 8px; /* Adjusted padding */
+	}
+
+	.argument-pair .remove-argument-btn {
+		padding: 6px 12px;
+		font-size: 0.85em;
+		background-color: #c0392b; /* Darker red */
+		color: white;
+		border: none;
+		border-radius: 3px;
+		cursor: pointer;
+		transition: background-color 0.2s ease;
+		flex-shrink: 0; /* Prevent button from shrinking */
+	}
+
+		.argument-pair .remove-argument-btn:hover {
+			background-color: #e74c3c; /* Lighter red on hover */
+			transform: scale(1.025); /* Slight grow effect */
+		}
+
+/* Styles for nested properties */
+.nested-container {
+	width: 100%;
+	padding: 10px;
+	margin-top: 10px;
+	background-color: #222;
+	border: 1px dashed #444;
+	border-radius: 4px;
+}
+
+.array-items-container {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.add-sub-property-btn {
+	padding: 6px 12px;
+	font-size: 0.85em;
+	background-color: #27ae60; /* Green */
+	color: white;
+	border: none;
+	border-radius: 3px;
+	cursor: pointer;
+	margin-top: 10px;
+	display: inline-block;
+}
+
+	.add-sub-property-btn:hover {
+		background-color: #2ecc71;
+	}
+
+
+/* Styles for buttons directly within #arguments-view (Add, Save, Back) */
+#arguments-view > button {
+	padding: 8px 15px;
+	cursor: pointer;
+	border: 1px solid #555;
+	border-radius: 4px;
+	background-color: #3a3a3a;
+	color: #ffffff;
+	transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+	margin-top: 10px;
+	margin-right: 10px;
+}
+
+	#arguments-view > button:hover:not(:disabled) {
+		background-color: #4a4a4a;
+		border-color: #666;
+	}
+
+	#arguments-view > button:active:not(:disabled) {
+		background-color: #5a5a5a;
+		box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+	}
+
+	#arguments-view > button:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		background-color: #3a3a3a;
+		border-color: #555;
+	}
+/* END --- Arguments View Styles --- */

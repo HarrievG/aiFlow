@@ -1,0 +1,28 @@
+hr.demo-pulse {
+	border: none;
+	height: 8px;
+	background: #e74c3c; /* A nice red */
+	border-radius: 4px;
+	margin: 0.5rem 0;
+	margin-top: 17px;
+	overflow :revert-layer;
+	display : block;
+	animation: pulse-hr 0.9s cubic-bezier(0.42,0,0.58,1.0) 1;
+}
+
+@keyframes pulse-hr {
+	0% {
+		transform: scaleX(0);
+		opacity: 1;
+	}
+
+	50% {
+		transform: scaleX(1.05); /* Slightly wider */
+		opacity: 0.7; /* A bit faded */
+	}
+
+	100% {
+		transform: scaleX(1);
+		opacity: 1;
+	}
+}

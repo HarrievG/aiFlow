@@ -1,0 +1,98 @@
+/* Specific form overrides within this view if needed, but general styles above should apply */
+#workflow-editor-view label {
+}
+
+#workflow-editor-view input[type="text"], #workflow-editor-view textarea, #workflow-editor-view select {
+}
+/* These selectors are covered by the general form styles now */
+
+
+#workflow-editor-view #workflow-details button {
+	/* This rule is now handled by the consolidated .view-action-button style below */
+	/* This block should be removed. */
+}
+
+#workflow-editor-view #execution-status {
+	margin-top: 20px; /* More space */
+	padding: 15px; /* More padding */
+	border: 1px dashed #666; /* Darker dashed border */
+	background-color: #222; /* Very dark background */
+	color: #0f0; /* Green text for status - maybe a softer green? */
+	color: #90ee90; /* Light green */
+	min-height: 50px; /* Taller minimum */
+	white-space: pre-wrap; /* Preserve formatting */
+	word-break: break-all;
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; /* Monospaced font for status */
+	font-size: 0.9em;
+	overflow-y: auto; /* Add scroll if status is long */
+	max-height: 150px; /* Limit height */
+	border-radius: 4px;
+}
+
+
+/* Agent Management Area within Workflow Editor */
+#agent-management-container {
+	/* Inherits border, margin-top, height, overflow, position */
+	background-color: #222; /* Dark background for the container */
+	color: #eee; /* Light text */
+	padding: 15px; /* Add padding inside the container */
+	box-sizing: border-box;
+	border-radius: 4px;
+}
+
+	#agent-management-container h2 {
+		color: #fff; /* White heading */
+		margin-top: 0;
+		margin-bottom: 15px; /* More space below heading */
+		font-size: 1.3em;
+	}
+
+	#agent-management-container > button { /* Target the Add Agent button */
+		margin-bottom: 15px; /* Space below button */
+		padding: 8px 15px;
+		/* Inherits dark button styles */
+	}
+
+#agent-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+	#agent-list li {
+		background-color: #3a3a3a; /* Darker background for list items */
+		border: 1px solid #555; /* Darker border */
+		margin-bottom: 8px; /* More vertical space */
+		padding: 10px 15px; /* More padding */
+		cursor: pointer;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		color: #e0e0e0; /* Light text */
+		border-radius: 4px;
+		transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+	}
+
+		#agent-list li:hover {
+			background-color: #4a4a4a; /* Highlight on hover */
+			border-color: #666;
+		}
+
+	#agent-list .agent-actions button {
+		margin-left: 8px; /* More space */
+		padding: 5px 12px; /* Slightly more padding */
+		font-size: 0.8em;
+		border: 1px solid #666;
+		background-color: #555;
+		color: #fff;
+		border-radius: 4px;
+		transition: background-color 0.2s ease-in-out;
+	}
+
+		#agent-list .agent-actions button:hover:not(:disabled) {
+			background-color: #666;
+		}
+
+		#agent-list .agent-actions button:active:not(:disabled) {
+			background-color: #777;
+		}
