@@ -1,0 +1,49 @@
+/* Agent Editor View Specifics */
+#agent-editor-view {
+	/* Inherits base view styles */
+}
+	/* Form elements covered by general styles */
+	#agent-editor-view label {
+	}
+
+	#agent-editor-view input[type="text"],
+	#agent-editor-view select,
+	#agent-editor-view textarea {
+	}
+
+
+	#agent-editor-view #agent-tools {
+		margin-bottom: 20px; /* More space */
+		padding: 15px; /* More padding */
+		border: 1px dashed #666; /* Darker dashed border */
+		background-color: #282828; /* Dark background */
+		color: #ccc; /* Muted color */
+		border-radius: 4px;
+	}
+
+		#agent-editor-view #agent-tools h3 {
+			color: #eee; /* Slightly lighter heading */
+			margin-top: 0;
+			margin-bottom: 10px;
+			font-size: 1.1em;
+		}
+
+		#agent-editor-view #agent-tools label {
+			width: auto; /* Override label width for checkboxes */
+			margin-right: 15px; /* More space */
+			margin-bottom: 8px;
+			display: inline-block;
+			color: #ccc; /* Keep muted color */
+			font-size: 0.9em; /* Smaller font for tool labels */
+		}
+
+		#agent-editor-view #agent-tools input[type="checkbox"] {
+			margin-right: 5px; /* Space between checkbox and label text */
+			vertical-align: middle;
+		}
+
+
+/* Flow Master Editor View Specifics */
+#flowmaster-editor-view {
+	/* Add specific styles for the state machine visualization here */
+}

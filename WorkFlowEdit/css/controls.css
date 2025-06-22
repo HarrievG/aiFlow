@@ -1,0 +1,75 @@
+/* --- Controls Bar --- */
+#controls {
+	padding: 10px 15px; /* More padding */
+	background-color: #282828; /* Dark background for controls */
+	text-align: center;
+	border-bottom: 1px solid #444; /* Darker border */
+	z-index: 20; /* Above SVG layer */
+	position: relative; /* Needed for z-index */
+	box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Subtle shadow */
+	display: flex; /* Use flex for better alignment */
+	justify-content: center; /* Center items */
+	align-items: center;
+	flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
+}
+
+	#controls button, #controls label, #controls input[type="checkbox"], #controls span {
+		padding: 8px 8px; /* Consistent padding */
+		margin: 5px 5px; /* Consistent margin */
+		vertical-align: middle;
+		font-size: 0.95em;
+		color: #e0e0e0;
+	}
+
+	#controls label {
+		cursor: pointer; /* Indicate labels are interactive */
+	}
+
+
+	#controls button {
+		padding: 8px 15px;
+		cursor: pointer;
+		border: 1px solid #555; /* Darker border */
+		border-radius: 4px;
+		background-color: #3a3a3a; /* Dark button background */
+		color: #ffffff; /* White text */
+		transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth transitions */
+	}
+
+		#controls button:hover:not(:disabled) {
+			background-color: #4a4a4a; /* Slightly lighter on hover */
+			border-color: #666;
+		}
+
+		#controls button:active:not(:disabled) {
+			background-color: #5a5a5a; /* Darker when pressed */
+			box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); /* Pressed effect */
+		}
+
+		#controls button:disabled {
+			opacity: 0.6; /* Mute disabled buttons */
+			cursor: not-allowed;
+			background-color: #3a3a3a; /* Keep base color */
+			border-color: #555;
+		}
+
+.control-separator {
+	margin: 0 10px;
+	color: #666; /* Darker separator */
+}
+
+/* Hide editor-specific controls when not in editor view */
+.editor-control {
+	display: none;
+}
+
+#workflow-editor-view.active .editor-control {
+	display: inline-block; /* Show when workflow editor is active */
+}
+
+#workflow-editor-view.active #flow-horizontal,
+#workflow-editor-view.active label[for="flow-horizontal"],
+#workflow-editor-view.active #flow-vertical,
+#workflow-editor-view.active label[for="flow-vertical"] {
+	display: inline-block;
+}

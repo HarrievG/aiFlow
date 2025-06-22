@@ -1,0 +1,205 @@
+/* --- Base Styles --- */
+html {
+	/* Keep centering properties */
+	align-items: center;
+	align-content: center;
+	display: flex;
+	justify-content: center;
+	/* Use a slightly darker base background */
+	background-color: #121212; /* Very dark gray */
+}
+
+hr {
+	display: block;
+	margin-block-start: 0.5em;
+	margin-block-end: 0.5em;
+	margin-inline-start: auto;
+	margin-inline-end: auto;
+	unicode-bidi: isolate;
+	overflow: visible;
+	border-style: inset;
+	border-width: 1px;
+}
+
+body {
+	font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* More modern sans-serif stack */
+	margin: 0;
+	color: #e0e0e0; /* Light gray for main text */
+	background-color: #1a1a1a; /* Dark background */
+	height: 100vh;
+	width: 65%; /* Keep specified width */
+	max-width: 1200px; /* Add max-width for large screens */
+	padding: 0 20px; /* Add some padding on the sides */
+	box-sizing: border-box; /* Include padding in width */
+	overflow: hidden;
+	flex-direction: column;
+	display: flex;
+	justify-content: flex-start; /* Align content to the top */
+	/* Remove height: 100vh and use min-height if body doesn't fill screen, but 100vh is likely intentional for app layout */
+}
+
+h1 {
+	text-align: center;
+	margin: 10px 0 20px 0; /* More space below h1 */
+	color: #ffffff; /* White for main titles */
+	font-size: 2em; /* Slightly larger */
+	font-weight: 300; /* Lighter weight */
+}
+
+h2 {
+	color: #ffffff; /* White for section titles */
+	margin-top: 0;
+	margin-bottom: 15px;
+	font-size: 1.5em;
+	font-weight: 400;
+}
+
+div {
+	display: block;
+	unicode-bidi: isolate;
+}
+
+/* --- Main Content Area and Views --- */
+#main-content {
+	flex-grow: 1;
+	display: block; /* Use block to manage views */
+	position: relative; /* For absolute positioning of views */
+	width: 100%; /* Ensure it takes full width */
+	/* Remove background here, views handle it */
+}
+
+.view {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	overflow: visible; /* Allow scrolling within views if content overflows */
+	padding: 20px;
+	box-sizing: border-box;
+	background-color: #282828; /* Dark background for views by default */
+	color: #e0e0e0; /* Default text color for views */
+	display: none; /* Hidden by default */
+	animation: fadeIn 0.3s ease-out; /* Simple fade-in animation */
+}
+
+	.view.active {
+		background-color: #1a1a1a; /* Match body background when active */
+		display: block; /* Show the active view */
+	}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+/* --- Form Element Styling (Inputs, Textareas, Selects) --- */
+/* Applied consistently across views */
+label {
+	display: inline-block;
+	width: 120px; /* Keep alignment */
+	margin-bottom: 8px; /* Consistent margin */
+	color: #bbb; /* Muted label color */
+	vertical-align: top; /* Align label top with input/textarea */
+	font-size: 0.95em;
+}
+
+input[type="text"],
+input[type="number"], /* Added number type */
+textarea,
+select {
+	width: calc(100% - 130px); /* Keep width calculation */
+	padding: 10px; /* More padding */
+	margin-bottom: 15px; /* More space below */
+	border: 1px solid #555; /* Darker border */
+	border-radius: 4px;
+	vertical-align: top;
+	background-color: #333; /* Dark background */
+	color: #eee; /* Light text */
+	box-sizing: border-box; /* Include padding and border in the element's total width and height */
+	font-size: 1em;
+	transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+	input[type="text"]:focus,
+	input[type="number"]:focus,
+	textarea:focus,
+	select:focus {
+		outline: none; /* Remove default outline */
+		border-color: #007bff; /* Accent color on focus */
+		box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Subtle glow on focus */
+	}
+
+
+textarea {
+	min-height: 100px; /* Slightly taller textarea */
+	resize: vertical;
+}
+
+select {
+	/* Style the dropdown arrow for dark background */
+	-webkit-appearance: none; /* Remove default arrow */
+	-moz-appearance: none;
+	appearance: none;
+	/* Using a common SVG arrow pointing down */
+	background-image: url('data:image/svg+xml;utf8,<svg fill="%23eeeeee" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+	background-repeat: no-repeat;
+	background-position: right 10px top 50%;
+	background-size: 12px auto;
+	padding-right: 30px; /* Make space for the arrow */
+	cursor: pointer;
+}
+
+/* --- View-Level Action Buttons (Save, Back, etc.) --- */
+/* Applied to buttons in workflow, agent, and arguments editors for a consistent look. */
+#workflow-editor-view #workflow-details button,
+#agent-editor-view > button,
+#arguments-view > button,
+#structured-outputs-view > button,
+#home-view > button {
+	padding: 8px 15px;
+	cursor: pointer;
+	border: 1px solid #555;
+	border-radius: 4px;
+	background-color: #3a3a3a;
+	color: #ffffff;
+	transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+	margin-top: 10px;
+	margin-right: 10px;
+}
+
+	#workflow-editor-view #workflow-details button:hover:not(:disabled),
+	#agent-editor-view > button:hover:not(:disabled),
+	#arguments-view > button:hover:not(:disabled),
+	#structured-outputs-view > button:hover:not(:disabled),
+	#home-view > button:hover:not(:disabled) {
+		background-color: #4a4a4a;
+		border-color: #666;
+	}
+
+	#workflow-editor-view #workflow-details button:active:not(:disabled),
+	#agent-editor-view > button:active:not(:disabled),
+	#arguments-view > button:active:not(:disabled),
+	#structured-outputs-view > button:active:not(:disabled),
+	#home-view > button:active:not(:disabled) {
+		background-color: #5a5a5a;
+		box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+	}
+
+	#workflow-editor-view #workflow-details button:disabled,
+	#agent-editor-view > button:disabled,
+	#arguments-view > button:disabled,
+	#structured-outputs-view > button:disabled,
+	#home-view > button:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		background-color: #3a3a3a;
+		border-color: #555;
+	}
+/* END --- View-Level Action Buttons --- */

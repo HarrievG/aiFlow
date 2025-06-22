@@ -1,0 +1,48 @@
+/* Home View Specifics */
+#home-view h2 {
+	margin-top: 0;
+}
+
+#workflow-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+	#workflow-list li {
+		background-color: #282828; /* Darker background for list items */
+		border: 1px solid #444; /* Darker border */
+		margin-bottom: 8px; /* More vertical space */
+		padding: 12px 15px; /* More padding */
+		cursor: pointer;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		color: #e0e0e0; /* Light text */
+		border-radius: 4px;
+		transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+	}
+
+		#workflow-list li:hover {
+			background-color: #3a3a3a; /* Highlight on hover */
+			border-color: #555;
+		}
+
+	#workflow-list .workflow-actions button {
+		margin-left: 8px; /* More space */
+		padding: 5px 12px; /* Slightly more padding */
+		font-size: 0.8em;
+		/* Inherits dark button styles, adjust if needed */
+		border: 1px solid #666;
+		background-color: #555;
+		color: #fff;
+		transition: background-color 0.2s ease-in-out;
+	}
+
+		#workflow-list .workflow-actions button:hover:not(:disabled) {
+			background-color: #666;
+		}
+
+		#workflow-list .workflow-actions button:active:not(:disabled) {
+			background-color: #777;
+		}

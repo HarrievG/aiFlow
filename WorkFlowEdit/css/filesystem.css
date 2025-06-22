@@ -1,0 +1,118 @@
+/* --- Filesystem Browser View Styles --- */
+#filesystem-view {
+	/* Inherits base view styles */
+}
+
+#filesystem-controls {
+	margin-bottom: 15px;
+	padding: 10px 15px; /* Adjusted padding */
+	background-color: #282828; /* Darker background for controls */
+	border-radius: 5px;
+	display: flex; /* Arrange controls horizontally */
+	align-items: center;
+	gap: 10px; /* Space between items */
+	flex-wrap: wrap; /* Allow controls to wrap */
+}
+
+	#filesystem-controls button {
+		padding: 6px 12px; /* Adjusted padding */
+		/* Inherits dark button styles */
+		border: 1px solid #555;
+		background-color: #3a3a3a;
+		color: #fff;
+	}
+
+		#filesystem-controls button:hover:not(:disabled) {
+			background-color: #4a4a4a;
+		}
+
+		#filesystem-controls button:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+
+#current-path {
+	flex-grow: 1; /* Take up available space */
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; /* Monospaced font for path */
+	color: #bbb; /* Lighter color for path */
+	white-space: nowrap; /* Prevent path from wrapping */
+	overflow: hidden; /* Hide overflowing path */
+	text-overflow: ellipsis; /* Show ellipsis for overflow */
+	padding: 0 5px; /* Add slight padding */
+}
+
+#filesystem-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	border: 1px solid #444; /* Border around the list */
+	border-radius: 4px;
+	background-color: #1a1a1a; /* Dark background for the list area */
+	max-height: calc(100% - 120px); /* Adjust height based on controls/padding, give some buffer */
+	overflow-y: auto; /* Enable vertical scrolling */
+}
+
+	#filesystem-list li {
+		padding: 10px 15px; /* More padding */
+		border-bottom: 1px solid #333; /* Darker separator between items */
+		cursor: pointer;
+		display: flex; /* Use flex for layout */
+		justify-content: space-between; /* Name on left, size on right */
+		align-items: center;
+		color: #eee; /* Default text color */
+		font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; /* Monospaced font for entries */
+		font-size: 0.95em;
+		transition: background-color 0.2s ease-in-out;
+	}
+
+		#filesystem-list li:last-child {
+			border-bottom: none; /* No border on the last item */
+		}
+
+		#filesystem-list li:hover {
+			background-color: #282828; /* Highlight on hover */
+		}
+
+		/* Style for directories */
+		#filesystem-list li.directory {
+			font-weight: bold; /* Directories are bold */
+			color: #87ceeb; /* Sky blue color for directories */
+		}
+
+			/* Add a simple folder icon using pseudo-element */
+			#filesystem-list li.directory::before {
+				content: '📁 '; /* Folder emoji or other icon */
+				margin-right: 10px; /* Adjusted margin */
+				color: #ffcd40; /* Gold color for icon */
+				font-weight: normal; /* Icon font weight */
+			}
+
+		/* Style for files */
+		#filesystem-list li.file {
+			/* Default styles are fine, maybe slightly lighter color */
+			color: #ccc;
+		}
+
+			/* Add a simple file icon using pseudo-element */
+			#filesystem-list li.file::before {
+				content: '📄 '; /* File emoji or other icon */
+				margin-right: 10px; /* Adjusted margin */
+				color: #a9a9a9; /* Dark grey color for icon */
+				font-weight: normal;
+			}
+
+		/* NEW: Style for the entry name span */
+		#filesystem-list li .entry-name {
+			flex-grow: 1; /* Allow the name span to take up available space */
+			white-space: nowrap; /* Prevent name from wrapping */
+			overflow: hidden; /* Hide overflowing name */
+			text-overflow: ellipsis; /* Show ellipsis for overflow */
+		}
+
+
+.entry-size {
+	flex-shrink: 0; /* Prevent size from shrinking */
+	font-size: 0.8em; /* Smaller font for size */
+	color: #aaa; /* Muted color for size */
+	margin-left: 15px; /* More space from the name */
+}
