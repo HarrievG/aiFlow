@@ -150,15 +150,29 @@ function createPropertyElement(key, property, isRequired, path, dataObject) {
 	});
 
 	const requiredLabel = document.createElement('label');
-	requiredLabel.textContent = 'Required';
+	requiredLabel.innerText = '❕︎  ';
+
+
 	const requiredCheckbox = document.createElement('input');
 	requiredCheckbox.type = 'checkbox';
 	requiredCheckbox.checked = isRequired;
-	requiredCheckbox.addEventListener('change', (e) => {
+
+
+	const updateColor = () => {
+		console.error('requiredCheckbox.checked', requiredCheckbox.checked);
+		if (requiredCheckbox.checked)
+			requiredLabel.style.color =  '#c0392b'
+		else
+			requiredLabel.style.color = '#010101'
+	};
+	updateColor();
+
+	requiredCheckbox.addEventListener('click', (e) => {
 		updateRequiredStatus(path, e.target.checked, dataObject);
+		updateColor();
 		// renderOutputs(dataObject); // Usually not needed just for required status
 	});
-	requiredLabel.prepend(requiredCheckbox);
+	requiredLabel.appendChild(requiredCheckbox);
 
 	const removeBtn = document.createElement('button');
 	removeBtn.textContent = 'Remove';
