@@ -11,11 +11,10 @@ export const elements = {
 	agentTypeSelect: null,
 	agentPromptTextarea: null,
 	agentToolsDiv: null,
-	// Add other agent-specific elements here if any (e.g., save button, back button, etc.
-	// though their event listeners might still be in main.js, the elements themselves can be here)
+
 	saveAgentDetailsBtn: null,
 	editAgentOutputsBtn: null,
-	// backToWorkflowBtn: null, // This is in dom.js, and its listener is in main.js, might be too general to move here
+	backToWorkflowBtn: null,
 };
 
 /**
@@ -36,11 +35,11 @@ export function init() {
 	elements.agentToolsDiv = document.getElementById('agent-tools');
 	elements.saveAgentDetailsBtn = document.getElementById('save-agent-details-btn'); // Often listeners are in main.js, but element can be here
 	elements.editAgentOutputsBtn = document.getElementById('edit-agent-outputs-btn');
-
+	elements.backToWorkflowBtn = document.getElementById('back-to-workflow-btn'); // General navigation button
 
 	for (const key in elements) {
 		if (elements[key] === null) {
-			// console.warn(`AgentEditorView: Element for '${key}' was not found.`);
+			 console.warn(`AgentEditorView: Element for '${key}' was not found.`);
 		}
 	}
 	// console.log("AgentEditorView initialized and DOM elements queried.");

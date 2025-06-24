@@ -1,7 +1,9 @@
 // WorkFlowEdit/workflowEditorView.js
 // This module will encapsulate the view logic for the Workflow Editor.
-
-console.log("WorkflowEditorView module loaded");
+import * as dom from './dom.js';
+import { sendApiRequest } from './websocket.js';
+import { state } from './state.js';
+import { editAgent, deleteAgent } from './main.js';
 
 // DOM element references will be stored here
 export const elements = { // Exporting for now, can be un-exported if only used internally
@@ -20,56 +22,6 @@ export const elements = { // Exporting for now, can be un-exported if only used 
 	addAgentBtn: null,
 	agentListUl: null,
 };
-
-/**
- * Initializes the WorkflowEditorView module.
- * Queries and stores references to DOM elements within the workflow editor view.
- */
-export function init() {
-	const viewElement = document.getElementById('workflow-editor-view');
-	if (!viewElement) {
-		console.error("WorkflowEditorView: Main #workflow-editor-view element not found.");
-		return;
-	}
-	elements.workflowEditorViewElement = viewElement;
-
-	elements.workflowIdInput = document.getElementById('workflow-id');
-	elements.workflowNameInput = document.getElementById('workflow-name');
-	elements.workflowQueryTextarea = document.getElementById('workflow-query');
-	elements.workflowServiceList = document.getElementById('workflow-service-type');
-	elements.saveWorkflowDetailsBtn = document.getElementById('save-workflow-details-btn');
-	elements.executeWorkflowBtn = document.getElementById('execute-workflow-btn');
-	elements.manageAgentsBtn = document.getElementById('manage-agents-btn');
-	elements.manageWorkflowArgsBtn = document.getElementById('manage-workflow-arguments-btn'); // Corrected ID
-	elements.editGraphBtn = document.getElementById('edit-graph-btn');
-	elements.executionStatusDiv = document.getElementById('execution-status');
-	elements.agentManagementContainer = document.getElementById('agent-management-container');
-	elements.addAgentBtn = document.getElementById('add-agent-btn'); // This is within agentManagementContainer
-	elements.agentListUl = document.getElementById('agent-list'); // This is within agentManagementContainer
-
-	// Verify all elements are found (optional, good for debugging)
-	for (const key in elements) {
-		if (elements[key] === null && key !== 'workflowEditorViewElement') { // workflowEditorViewElement is checked above
-			// console.warn(`WorkflowEditorView: Element with ID for '${key}' was not found.`);
-		}
-	}
-	// console.log("WorkflowEditorView initialized and DOM elements queried.");
-}
-
-// Call init() automatically when the module is loaded, assuming DOM is ready.
-// Alternatively, this could be called explicitly from main.js or ui.js.
-// For now, let's assume it's initialized when #workflow-editor-view is relevant.
-// init(); // Decided to call this from main.js or ui.js when appropriate.
-
-// Import state and other necessary functions if they are used by the moved functions
-import { state } from './state.js';
-import { sendApiRequest } from './websocket.js';
-// Import functions that will be called by event handlers within renderAgentList
-// These might need to be passed in if we want to keep this module purely view-focused.
-// For now, direct import for simplicity.
-import { editAgent, deleteAgent } from './main.js';
-import * as dom from './dom.js'; // For flowHorizontalRadio, flowVerticalRadio
-// import { setFlowDirection } from './ui.js'; // For setFlowDirection - REMOVED for callback approach
 
 // Store callbacks passed during init
 const callbacks = {
@@ -114,13 +66,11 @@ export function init(options = {}) {
 	// Verify all elements are found (optional, good for debugging)
 	for (const key in elements) {
 		if (elements[key] === null && key !== 'workflowEditorViewElement') { // workflowEditorViewElement is checked above
-			// console.warn(`WorkflowEditorView: Element with ID for '${key}' was not found.`);
+			console.warn(`WorkflowEditorView: Element with ID for '${key}' was not found.`);
 		}
 	}
-	// console.log("WorkflowEditorView initialized and DOM elements queried.");
+	 console.log("WorkflowEditorView initialized and DOM elements queried.");
 }
-
-
 export function populateWorkflowDetails(workflow) {
 	if (!elements.workflowIdInput) {
 		console.error("populateWorkflowDetails: View not initialized or workflowIdInput not found.");
@@ -256,3 +206,5 @@ export function updateExecutionStatus(message, isError = false) {
         elements.executionStatusDiv.style.color = isError ? 'red' : '#90ee90'; // Or your preferred error/success colors
     }
 }
+
+console.log("WorkflowEditorView module loaded");

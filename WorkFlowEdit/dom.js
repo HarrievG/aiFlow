@@ -21,19 +21,12 @@ export const createWorkflowBtn = document.getElementById('create-workflow-btn');
 export const workflowListUl = document.getElementById('workflow-list');
 
 // Workflow Editor View
-export const workflowEditorView = document.getElementById('workflow-editor-view'); // Keep the main view element here for now
-export const nodeEditorContainer = document.getElementById('node-editor-container'); // Container for the node editor (still general)
-// Note: Specific elements of workflow editor view are now in workflowEditorView.js:
-// workflowIdInput, workflowNameInput, workflowQueryTextarea, workflowServiceList,
-// saveWorkflowDetailsBtn, executeWorkflowBtn, manageAgentsBtn, manageWorkflowArgsBtn,
-// editGraphBtn, executionStatusDiv, agentManagementContainer, addAgentBtn, agentListUl
+export const workflowEditorView = document.getElementById('workflow-editor-view');
+export const nodeEditorContainer = document.getElementById('node-editor-container');
+
 
 // Agent Editor View
-export const agentEditorView = document.getElementById('agent-editor-view'); // Keep the main view element here
-export const backToWorkflowBtn = document.getElementById('back-to-workflow-btn'); // General navigation button
-// Note: Specific elements of agent editor view are now in agentEditorView.js:
-// agentIdInput, agentNameInput, agentTypeSelect, agentPromptTextarea,
-// agentToolsDiv, editAgentOutputsBtn, saveAgentDetailsBtn
+export const agentEditorView = document.getElementById('agent-editor-view');
 
 // Flow Master Editor View
 export const flowmasterEditorView = document.getElementById('flowmaster-editor-view');

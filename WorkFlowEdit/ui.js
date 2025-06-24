@@ -9,13 +9,18 @@ import { sendApiRequest_fs } from './websocket_fs.js'; // Import sendApiRequest
 import { editAgent, deleteAgent, editWorkflow, deleteWorkflow, clearWorkspaceAndWorkflow, executeWorkflow, runWorkflow } from './main.js'; // Import functions from main.js
 
 // --- View Management ---
-export function showView(viewId) {
+export function showView(viewId,resetScroll = true) {
 	const isHome = viewId === 'home';
 	//dom.nodeEditorContainer.classList.add('hidden');
 	document.querySelectorAll('.view').forEach(view => {
 		view.classList.remove('active');
 	});
-	document.getElementById(`${viewId}-view`).classList.add('active');
+
+	
+	let domView = document.getElementById(`${viewId}-view`);
+	domView.classList.add('active');
+	if (resetScroll)
+		domView.scrollTop = 0;
 
 	const isNodeEditor = !document.getElementById(`node-editor-container`).classList.contains('hidden');
 	if (isNodeEditor && isHome)
@@ -33,6 +38,7 @@ export function showView(viewId) {
 	} else if (viewId === 'filesystem') {
 		navigateToPath(state.currentFilesystemPath);
 	} else if (viewId === 'structured-outputs') {
+
 		// Dynamically set the title of the shared output editor
 		const outputEditorTitle = dom.outputsView.querySelector('h2'); // Assuming the h2 is the main title
 		if (outputEditorTitle) {

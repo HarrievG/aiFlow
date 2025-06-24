@@ -9,13 +9,15 @@ import {
     renderAgentList as renderAgentListView,
     getWorkflowDetails as getWorkflowDetailsView,
     updateExecutionStatus,
-    clearExecutionStatus
+	clearExecutionStatus,
+	elements as domWorkflowEdit
 } from './workflowEditorView.js';
 import {
     init as initAgentEditorView,
     populateAgentDetails as populateAgentDetailsView,
     getAgentDetails as getAgentDetailsView,
-    renderAvailableTools as renderAvailableToolsView
+	renderAvailableTools as renderAvailableToolsView,
+	elements as domAgentEdit
 } from './agentEditorView.js';
 import { handleSocketMouseDown } from './interactions.js';
 import { initWebSocket, sendApiRequest, subscribeToEvent } from './websocket.js';
@@ -44,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	// --- Event Listeners ---
 
 	// Global UI Buttons
-	dom.homeBtn.addEventListener('click', () => showView('home'));
+	dom.homeBtn.addEventListener('click', () => showView('home',false));
 
 	// Home View Buttons
 	dom.createWorkflowBtn.addEventListener('click', () => {
@@ -66,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		// Hide graph/agent views initially
 		dom.nodeEditorContainer.classList.add('hidden');
-		dom.agentManagementContainer.classList.add('hidden');
+		domWorkflowEdit.agentManagementContainer.classList.add('hidden');
 		// Reset editor state for new workflow
 		clearWorkspace(false); // Clear UI elements without confirmation
 		setFlowDirection('horizontal'); // Default for new workflow
@@ -80,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 
 	// Workflow Editor Buttons
-	dom.saveWorkflowDetailsBtn.addEventListener('click', () => {
+	domWorkflowEdit.saveWorkflowDetailsBtn.addEventListener('click', () => {
 		if (!state.currentWorkflow) return;
 
 		// Update state from form
@@ -120,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	});
 
-	dom.executeWorkflowBtn.addEventListener('click', () => {
+	domWorkflowEdit.executeWorkflowBtn.addEventListener('click', () => {
 		if (!state.currentWorkflow || !state.currentWorkflow.id) {
 			alert('Please save the workflow first.');
 			return;
@@ -153,17 +155,17 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	});
 
-	dom.manageAgentsBtn.addEventListener('click', () => {
+	domWorkflowEdit.manageAgentsBtn.addEventListener('click', () => {
 		if (!state.currentWorkflow) {
 			alert('Load or create a workflow first.');
 			return;
 		}
 		dom.nodeEditorContainer.classList.add('hidden');
-		dom.agentManagementContainer.classList.remove('hidden');
+		domWorkflowEdit.agentManagementContainer.classList.remove('hidden');
 		renderAgentListView(state.currentWorkflow.agents);
 	});
 
-	dom.manageWorkflowArgsBtn.addEventListener('click', () => {
+	domWorkflowEdit.manageWorkflowArgsBtn.addEventListener('click', () => {
 		if (!state.currentWorkflow) {
 			alert('Load or create a workflow first.');
 			return;
@@ -174,19 +176,19 @@ document.addEventListener('DOMContentLoaded', () => {
 			state.currentWorkflow.arguments = {}
 		renderArguments(state.currentWorkflow.arguments); // Populate the view with current arguments when shown
 	});
-	dom.editGraphBtn.addEventListener('click', () => {
+	domWorkflowEdit.editGraphBtn.addEventListener('click', () => {
 		if (!state.currentWorkflow) {
 			alert('Load or create a workflow first.');
 			return;
 		}
-		dom.agentManagementContainer.classList.add('hidden');
+		domWorkflowEdit.agentManagementContainer.classList.add('hidden');
 		dom.nodeEditorContainer.classList.remove('hidden');
 		// Load the graph state into the editor
 		loadLayout(state.currentWorkflow); // Pass the workflow object
 		showView('workflow-editor'); // Ensure editor controls are shown
 	});
 
-	dom.addAgentBtn.addEventListener('click', () => {
+	domWorkflowEdit.addAgentBtn.addEventListener('click', () => {
 		if (!state.currentWorkflow) return;
 		const newAgentId = `agent-${Date.now()}`; // Simple unique ID
 		state.currentWorkflow.agents[newAgentId] = {
@@ -204,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 
 	// Agent Editor Buttons
-	dom.editAgentOutputsBtn.addEventListener('click', () => {
+	domAgentEdit.editAgentOutputsBtn.addEventListener('click', () => {
 		if (!state.currentWorkflow || !state.currentAgentId) {
 			alert('No agent selected for editing outputs.');
 			return;
@@ -225,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		showView('structured-outputs');
 	});
 
-	dom.saveAgentDetailsBtn.addEventListener('click', () => {
+	domAgentEdit.saveAgentDetailsBtn.addEventListener('click', () => {
 		if (!state.currentWorkflow || !state.currentAgentId) return;
 		// Update the specific agent in the current workflow state
 		const agentId = state.currentAgentId;
@@ -255,14 +257,14 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	});
 
-	dom.backToWorkflowBtn.addEventListener('click', () => {
-		showView('workflow-editor');
+	domAgentEdit.backToWorkflowBtn.addEventListener('click', () => {
+		showView('workflow-editor',false);
 		// Ensure the correct sub-view (agents or graph) is shown
 		if (!dom.nodeEditorContainer.classList.contains('hidden')) {
-			dom.agentManagementContainer.classList.add('hidden');
+			domWorkflowEdit.agentManagementContainer.classList.add('hidden');
 		} else {
 			dom.nodeEditorContainer.classList.add('hidden');
-			dom.agentManagementContainer.classList.remove('hidden');
+			domWorkflowEdit.agentManagementContainer.classList.remove('hidden');
 		}
 	});
 
@@ -271,10 +273,10 @@ document.addEventListener('DOMContentLoaded', () => {
 		showView('workflow-editor');
 		// Ensure the correct sub-view (agents or graph) is shown
 		if (!dom.nodeEditorContainer.classList.contains('hidden')) {
-			dom.agentManagementContainer.classList.add('hidden');
+			domWorkflowEdit.agentManagementContainer.classList.add('hidden');
 		} else {
 			dom.nodeEditorContainer.classList.add('hidden');
-			dom.agentManagementContainer.classList.remove('hidden');
+			domWorkflowEdit.agentManagementContainer.classList.remove('hidden');
 		}
 	});
 
@@ -350,9 +352,9 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 
 	// --- Initial View ---
-	showView('home'); // Start on the home page
+	showView('home');
 
-	console.log("aiFlow Editor Initialized (Modular)");
+	console.log("aiFlow Editor Initialized");
 
 	// --- WebSocket Event Subscriptions ---
 	subscribeToEvent('workflowExecutionStatus', (payload) => {
@@ -369,7 +371,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	subscribeToEvent('logMessage', (payload) => {
 		console.log(`[Backend Log - ${payload.level}] ${payload.message}`);
-		// Optionally display these in a log panel in the UI
 	});
 });
 
@@ -477,7 +478,7 @@ export function editWorkflow(workflowId) {
 			clearExecutionStatus(); // Clear status when loading a new workflow
 			// Default to showing the agent list after loading
 			dom.nodeEditorContainer.classList.add('hidden');
-			dom.agentManagementContainer.classList.remove('hidden');
+			domWorkflowEdit.agentManagementContainer.classList.remove('hidden');
 			renderAgentListView(state.currentWorkflow.agents);
 			// Note: Graph is loaded when user clicks "Edit Graph"
 		} else {
@@ -536,9 +537,9 @@ export function clearWorkspaceAndWorkflow(confirm = true) {
 	clearExecutionStatus();
 
 	dom.nodeEditorContainer.classList.add('hidden');
-	dom.agentManagementContainer.classList.add('hidden');
+	domWorkflowEdit.agentManagementContainer.classList.add('hidden');
 	// Go back to home view
-	showView('home');
+	showView('home',false);
 }
 
 // Override the original saveLayout to save to the workflow object

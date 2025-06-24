@@ -16,13 +16,13 @@ export function initOutputEditor() {
 		} else if (state.currentEditingContext === 'workflow' && state.currentWorkflow) {
 			targetOutputsObject = state.currentWorkflow.outputs;
 		} else {
-			console.error('Cannot add output pair: Invalid context or missing data.');
+			console.warn('Cannot add output pair: Invalid context or missing data.');
 			alert('Error: Could not determine where to add the output item.');
 			return;
 		}
 
 		if (!targetOutputsObject) { // Should be initialized by calling functions
-			console.error('Target outputs object is null/undefined before adding pair.');
+			console.warn('Target outputs object is null/undefined before adding pair.');
 			targetOutputsObject = { format: { type: 'object', properties: {}, required: [] } };
 			// Assign it back if it was workflow outputs
 			if (state.currentEditingContext === 'workflow') state.currentWorkflow.outputs = targetOutputsObject;
@@ -57,9 +57,9 @@ export function initOutputEditor() {
 
 	dom.backToWorkflowFromOutputsBtn.addEventListener('click', () => {
 		if (state.currentEditingContext === 'agent') {
-			showView('agent-editor'); // Go back to the agent editor
+			showView('agent-editor',false); // Go back to the agent editor
 		} else {
-			showView('workflow-editor'); // Default back to workflow editor (graph view or details)
+			showView('workflow-editor',false); // Default back to workflow editor (graph view or details)
 		}
 	});
 }
@@ -158,8 +158,7 @@ function createPropertyElement(key, property, isRequired, path, dataObject) {
 	requiredCheckbox.checked = isRequired;
 
 
-	const updateColor = () => {
-		console.error('requiredCheckbox.checked', requiredCheckbox.checked);
+	const updateColor = () => {		
 		if (requiredCheckbox.checked)
 			requiredLabel.style.color =  '#c0392b'
 		else
@@ -250,7 +249,7 @@ function getPropertyRef(path, dataObject) {
         if (!current) { // If properties itself is missing after drilling down
             current = {}; // This assignment might be lost if not careful with references
             // This indicates an issue with how parent objects are structured or initialized
-            console.error("getPropertyRef: encountered undefined properties at path", path.slice(0, i+1));
+			console.warn("getPropertyRef: encountered undefined properties at path", path.slice(0, i+1));
             // To fix, ensure objects always have .properties, e.g. current[path[i]].properties = {}
             // For now, we'll let it potentially fail or operate on a temporary object
         }
