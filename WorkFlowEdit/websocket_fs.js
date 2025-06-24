@@ -1,8 +1,4 @@
 import { state } from './state.js';
-import { showView } from './ui.js'; // Use showView for navigation on connection status
-// Import other UI update functions as needed for events
-import { renderWorkflowList } from './ui.js';
-
 
 let websocket = null;
 let nextRequestId = 1;

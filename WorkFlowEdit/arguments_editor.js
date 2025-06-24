@@ -141,9 +141,7 @@ export function initArgumentsEditor() {
 
 	if (dom.backToWorkflowFromArgumentsBtn) {
 		dom.backToWorkflowFromArgumentsBtn.addEventListener('click', () => {
-
-			showView('workflow-editor');
-			//populateWorkflowDetails(state.currentWorkflow);
+			showView('workflow-editor',false);
 		});
 	}
 }
