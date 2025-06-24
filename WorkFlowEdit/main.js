@@ -2,7 +2,21 @@ import * as dom from './dom.js';
 import { state, setNodeIdCounter, setLinkIdCounter } from './state.js';
 import { createNode } from './node.js';
 import { startPan, handleZoom } from './editor.js';
-import { setFlowDirection, showView, renderWorkflowList, renderAgentList, populateWorkflowDetails, populateAgentDetails, getWorkflowDetails, getAgentDetails, renderAvailableTools, clearWorkspace } from './ui.js';
+import { setFlowDirection, showView, renderWorkflowList, clearWorkspace } from './ui.js'; // Removed workflow specific and agent specific
+import {
+    init as initWorkflowEditorView,
+    populateWorkflowDetails as populateWorkflowDetailsView,
+    renderAgentList as renderAgentListView,
+    getWorkflowDetails as getWorkflowDetailsView,
+    updateExecutionStatus,
+    clearExecutionStatus
+} from './workflowEditorView.js';
+import {
+    init as initAgentEditorView,
+    populateAgentDetails as populateAgentDetailsView,
+    getAgentDetails as getAgentDetailsView,
+    renderAvailableTools as renderAvailableToolsView
+} from './agentEditorView.js';
 import { handleSocketMouseDown } from './interactions.js';
 import { initWebSocket, sendApiRequest, subscribeToEvent } from './websocket.js';
 import { initWebSocket_fs, sendApiRequest_fs, subscribeToEvent_fs } from './websocket_fs.js';
@@ -22,6 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	// --- Initializer Calls ---
 	initArgumentsEditor();
 	initOutputEditor();
+	initWorkflowEditorView({ setFlowDirectionCallback: setFlowDirection }); // Already here from previous refactor
+	initAgentEditorView(); // Add this line
 
 	initExecuteWorkflowModal(); // Initialize modal event listeners
 
@@ -45,7 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
 			arguments: {}
 		};
 		showView('workflow-editor');
-		populateWorkflowDetails(state.currentWorkflow);
+		populateWorkflowDetailsView(state.currentWorkflow);
+		clearExecutionStatus(); // Clear status for new workflow
 
 		// Hide graph/agent views initially
 		dom.nodeEditorContainer.classList.add('hidden');
@@ -68,23 +85,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		// Update state from form
 
-		if (dom.workflowIdInput.getAttribute("shouldClearOnSend")) {
-			dom.workflowIdInput.removeAttribute("shouldClearOnSend")
-			dom.workflowIdInput.value = ''
+		// Use getWorkflowDetailsView to update state.currentWorkflow from the form
+		// This also handles the shouldClearOnSend attribute internally if needed, or can be adapted.
+		// For now, assuming getWorkflowDetailsView correctly updates the state.currentWorkflow object.
+		const updatedWorkflow = getWorkflowDetailsView(); // This updates state.currentWorkflow
+		if (!updatedWorkflow) {
+			console.error("Failed to get workflow details from view.");
+			return;
 		}
 
-		state.currentWorkflow.id = dom.workflowIdInput.value;
-		state.currentWorkflow.name = dom.workflowNameInput.value;
-		state.currentWorkflow.query = dom.workflowQueryTextarea.value;
+		// The ID logic for "shouldClearOnSend" might need to be inside getWorkflowDetailsView or handled carefully here.
+		// If workflowIdInput is managed by workflowEditorView, its state should be read there.
+		// Let's assume getWorkflowDetailsView handles this. If not, it's a refinement.
+		// If workflowIdInput.value is empty after getWorkflowDetailsView and it was a new workflow,
+		// it implies it should be treated as a new one by the backend.
 
-		var selIdx = dom.workflowServiceList.selectedIndex;
-		state.currentWorkflow.service_id = dom.workflowServiceList[selIdx].getAttribute("service_id");
+		// If the ID was 'New Workflow (ID assigned on save)' and is now empty, backend assigns ID.
+		// If an ID exists, it's an update.
+		// This logic is largely unchanged other than how state.currentWorkflow is populated.
 
 		sendApiRequest('saveWorkflow', state.currentWorkflow, (response) => {
 			if (response.status === 'success') {
 				console.log('Workflow saved:', response.payload.workflow_id);
 				state.currentWorkflow.id = response.payload.workflow_id; // Update ID if new
-				dom.workflowIdInput.value = state.currentWorkflow.id;
+				// Update the view with the new ID
+				if (populateWorkflowDetailsView && typeof populateWorkflowDetailsView === 'function') {
+					populateWorkflowDetailsView(state.currentWorkflow);
+				}
 				alert('Workflow saved successfully!');
 			} else {
 				console.error('Save failed:', response.payload.message);
@@ -98,24 +125,30 @@ document.addEventListener('DOMContentLoaded', () => {
 			alert('Please save the workflow first.');
 			return;
 		}
-		const initialQuery = dom.workflowQueryTextarea.value;
-		if (!initialQuery.trim()) {
+		// Ensure the latest query from the textarea is in the state
+		const currentDetails = getWorkflowDetailsView(); // This updates state.currentWorkflow
+		if (!currentDetails) {
+			console.error("Failed to get workflow details for execution.");
+			return;
+		}
+
+		if (!state.currentWorkflow.query || !state.currentWorkflow.query.trim()) {
 			alert('Please enter an initial query for execution.');
 			return;
 		}
-		// Update query in state before executing
-		state.currentWorkflow.query = initialQuery;
+
+		updateExecutionStatus('Starting execution...', false);
 
 		sendApiRequest('executeWorkflow', {
 			workflow_id: state.currentWorkflow.id,
-			initial_query: initialQuery
+			initial_query: state.currentWorkflow.query
 		}, (response) => {
 			if (response.status === 'success') {
 				console.log('Workflow execution started:', response.payload.message);
-				dom.executionStatusDiv.textContent = 'Execution started...';
+				updateExecutionStatus('Execution started: ' + response.payload.message, false);
 			} else {
 				console.error('Execution failed to start:', response.payload.message);
-				dom.executionStatusDiv.textContent = 'Error starting execution: ' + response.payload.message;
+				updateExecutionStatus('Error starting execution: ' + response.payload.message, true);
 			}
 		});
 	});
@@ -127,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 		dom.nodeEditorContainer.classList.add('hidden');
 		dom.agentManagementContainer.classList.remove('hidden');
-		renderAgentList(state.currentWorkflow.agents);
+		renderAgentListView(state.currentWorkflow.agents);
 	});
 
 	dom.manageWorkflowArgsBtn.addEventListener('click', () => {
@@ -165,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			sub_agents: [],
 			outputs: { format: { type: 'object', properties: {}, required: [] } } // Initialize outputs
 		};
-		renderAgentList(state.currentWorkflow.agents); // Refresh list
+		renderAgentListView(state.currentWorkflow.agents); // Refresh list
 		// Optionally jump directly to editing the new agent
 		editAgent(newAgentId);
 	});
@@ -196,23 +229,21 @@ document.addEventListener('DOMContentLoaded', () => {
 		if (!state.currentWorkflow || !state.currentAgentId) return;
 		// Update the specific agent in the current workflow state
 		const agentId = state.currentAgentId;
-		const agent = state.currentWorkflow.agents[agentId]; // agent.outputs is part of this object
+		// Use getAgentDetailsView to update the agent object in state from the form
+		const agent = getAgentDetailsView(); // This function should retrieve the agent from state and update it
+
 		if (agent) {
-			agent.name = dom.agentNameInput.value;
-			agent.type = dom.agentTypeSelect.value;
-			agent.prompt = dom.agentPromptTextarea.value;
-			// Collect selected tools
-			agent.tools = [];
-			dom.agentToolsDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-				agent.tools.push({ name: checkbox.value });
-			});
-
-			// Sub-agents logic would go here if implemented
+			// agent object is already updated by getAgentDetailsView with form values and tools.
+			// Sub-agents logic would go here if implemented.
 			// agent.outputs is already part of the 'agent' object due to direct state manipulation by output_editor.js
+			// or should be handled by getAgentDetailsView if it were to manage outputs form too.
 
-			sendApiRequest('saveAgent', agent, (response) => { // 'agent' here includes 'outputs'
+			sendApiRequest('saveAgent', agent, (response) => {
 				if (response.status === 'success') {
 					console.log('Agent saved (with outputs):', response.payload.agent_id);
+					// If agent ID was newly assigned by backend (though not typical for agents in this app structure)
+					// state.currentWorkflow.agents[agentId].id = response.payload.agent_id;
+					// populateAgentDetailsView(agent); // Re-populate to reflect any backend changes, if necessary
 				} else {
 					console.error('Save failed:', response.payload.message);
 					alert('Error saving agent: ' + response.payload.message);
@@ -331,7 +362,8 @@ document.addEventListener('DOMContentLoaded', () => {
 			if (payload.current_task) statusText += `\nCurrent Task: ${payload.current_task}`;
 			if (payload.output) statusText += `\nOutput: ${payload.output}`;
 			if (payload.error) statusText += `\nError: ${payload.error}`;
-			dom.executionStatusDiv.textContent = statusText;
+			// dom.executionStatusDiv.textContent = statusText;
+			updateExecutionStatus(statusText, payload.error ? true : false);
 		}
 	});
 
@@ -370,11 +402,11 @@ export function editAgent(agentId) {
 	} else {
 		// Show generic Agent editor
 		showView('agent-editor');
-		populateAgentDetails(agent);
+		populateAgentDetailsView(agent); // Use the new view function
 		// Request available tools from backend to populate tool list
 		sendApiRequest('listAvailableTools', {}, (response) => {
 			if (response.status === 'success') {
-				renderAvailableTools(response.payload.tools, agent.tools);
+				renderAvailableToolsView(response.payload.tools, agent.tools); // Use the new view function
 			} else {
 				console.error('Failed to list available tools:', response.payload.message);
 			}
@@ -416,7 +448,7 @@ export function deleteAgent(agentId) {
 		delete workflow.agents[agentId];
 
 		// Refresh the agent list UI
-		renderAgentList(workflow.agents);
+		renderAgentListView(workflow.agents);
 
 		// If the graph editor is visible, reload it to reflect the changes
 		if (!dom.nodeEditorContainer.classList.contains('hidden')) {
@@ -441,11 +473,12 @@ export function editWorkflow(workflowId) {
 		if (response.status === 'success') {
 			state.currentWorkflow = response.payload; // Store loaded workflow
 			showView('workflow-editor');
-			populateWorkflowDetails(state.currentWorkflow);
+			populateWorkflowDetailsView(state.currentWorkflow);
+			clearExecutionStatus(); // Clear status when loading a new workflow
 			// Default to showing the agent list after loading
 			dom.nodeEditorContainer.classList.add('hidden');
 			dom.agentManagementContainer.classList.remove('hidden');
-			renderAgentList(state.currentWorkflow.agents);
+			renderAgentListView(state.currentWorkflow.agents);
 			// Note: Graph is loaded when user clicks "Edit Graph"
 		} else {
 			console.error('Failed to load workflow:', response.payload.message);
@@ -462,14 +495,14 @@ export function executeWorkflow(workflowId) {
 
 			sendApiRequest('executeWorkflow', {
 				workflow_id: workflowId,
-				initial_query: currentWorkflow.initialQuery
+				initial_query: currentWorkflow.query // Corrected from initialQuery to query
 			}, (response) => {
 				if (response.status === 'success') {
 					console.log('Workflow execution started:', response.payload.message);
-					dom.executionStatusDiv.textContent = 'Execution started...';
+					updateExecutionStatus('Execution started...', false);
 				} else {
 					console.error('Execution failed to start:', response.payload.message);
-					dom.executionStatusDiv.textContent = 'Error starting execution: ' + response.payload.message;
+					updateExecutionStatus('Error starting execution: ' + response.payload.message, true);
 				}
 			});
 
@@ -496,10 +529,12 @@ export function clearWorkspaceAndWorkflow(confirm = true) {
 	state.currentWorkflow = null; // Clear workflow data
 	state.currentAgentId = null;
 	// Clear workflow details form
-	dom.workflowIdInput.value = '';
-	dom.workflowNameInput.value = '';
-	dom.workflowQueryTextarea.value = '';
-	dom.executionStatusDiv.textContent = '';
+	// This should now be handled by populateWorkflowDetailsView with an empty/null object
+	// or a dedicated clearWorkflowDetailsView function if created.
+	// For now, we can call populateWorkflowDetailsView with a shell object.
+	populateWorkflowDetailsView({ name: '', query: '', view_state: { flowDirection: 'horizontal' } });
+	clearExecutionStatus();
+
 	dom.nodeEditorContainer.classList.add('hidden');
 	dom.agentManagementContainer.classList.add('hidden');
 	// Go back to home view

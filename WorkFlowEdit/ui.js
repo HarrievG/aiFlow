@@ -68,6 +68,8 @@ export function setFlowDirection(direction) {
 }
 
 // --- Rendering Functions ---
+// Functions populateWorkflowDetails, getWorkflowDetails, and renderAgentList have been moved to workflowEditorView.js
+
 export function renderWorkflowList(response) {
 	const workflowListUl = dom.workflowListUl;
 	workflowListUl.innerHTML = ''; // Clear current list
@@ -118,161 +120,10 @@ export function renderWorkflowList(response) {
 		workflowListUl.appendChild(li);
 	}
 }
-export function populateWorkflowDetails(workflow) {
-	if (workflow.id)
-		dom.workflowIdInput.value = workflow.id
-	else {
-		dom.workflowIdInput.value = 'New Workflow (ID assigned on save)';
-		dom.workflowIdInput.setAttribute("shouldClearOnSend", true);
-	}
 
-	dom.workflowNameInput.value = workflow.name || '';
-	dom.workflowQueryTextarea.value = workflow.query || '';
+// Agent editor functions (populateAgentDetails, getAgentDetails, renderAvailableTools)
+// have been moved to agentEditorView.js
 
-	if (Object.keys(dom.workflowServiceList).length === 0) {
-
-		sendApiRequest('listServices', {}, (response) => {
-			if (response.status === 'success') {
-
-				if (response.payload.items.length) {
-					response.payload.items.forEach(entry => {
-						const li = document.createElement('option');
-
-						if (entry.id === workflow.service_id) {
-							li.selected = true;
-						}
-
-						li.setAttribute("service_id", entry.id);
-						li.textContent = entry.name;
-						dom.workflowServiceList.appendChild(li);
-					});
-				} else {
-					const li = document.createElement('option');
-					li.textContent = 'No service context defined yet.';
-					dom.workflowServiceList.appendChild(li);
-				}
-
-			} else {
-				console.error('Failed to servics workflow:', response.payload.message);
-			}
-		});
-	} else {
-		Array.from(dom.workflowServiceList.options).forEach(entry => {
-			if (entry.getAttribute("service_id") === workflow.service_id) {
-				entry.selected = true;
-			} else {
-				entry.selected = false;
-			}
-		});
-	}
-
-
-
-	dom.executionStatusDiv.textContent = ''; // Clear status on load
-	// Set radio buttons based on view state
-	if (workflow.view_state?.flowDirection === 'vertical') {
-		dom.flowVerticalRadio.checked = true;
-	} else {
-		dom.flowHorizontalRadio.checked = true;
-	}
-	setFlowDirection(workflow.view_state?.flowDirection || 'horizontal');
-}
-// Function to get data from workflow details form
-export function getWorkflowDetails() {
-	if (!state.currentWorkflow) return null;
-	state.currentWorkflow.name = dom.workflowNameInput.value;
-	state.currentWorkflow.query = dom.workflowQueryTextarea.value;
-	// Note: ID is read-only, agents/graph are managed separately
-	return state.currentWorkflow;
-}
-export function renderAgentList(agents) {
-	const agentListUl = dom.agentListUl;
-	agentListUl.innerHTML = ''; // Clear current list
-	if (!agents || Object.keys(agents).length === 0) {
-		const li = document.createElement('li');
-		li.textContent = 'No agents defined yet.';
-		agentListUl.appendChild(li);
-		return;
-	}
-
-	Object.values(agents).forEach(agent => {
-		const li = document.createElement('li');
-		li.textContent = `${agent.name} (${agent.type})`;
-		li.dataset.agentId = agent.id;
-
-		const actionsDiv = document.createElement('div');
-		actionsDiv.classList.add('agent-actions');
-
-		const editBtn = document.createElement('button');
-		editBtn.textContent = 'Edit';
-		editBtn.addEventListener('click', (e) => {
-			e.stopPropagation(); // Prevent li click
-			editAgent(agent.id);
-		});
-
-		const deleteBtn = document.createElement('button');
-		deleteBtn.textContent = 'Delete';
-		deleteBtn.addEventListener('click', (e) => {
-			e.stopPropagation(); // Prevent li click
-			deleteAgent(agent.id);
-		});
-
-		actionsDiv.appendChild(editBtn);
-		actionsDiv.appendChild(deleteBtn);
-		li.appendChild(actionsDiv);
-
-		agentListUl.appendChild(li);
-	});
-
-}
-export function populateAgentDetails(agent) {
-	dom.agentIdInput.value = agent.id || 'New Agent (ID assigned on save)';
-	dom.agentNameInput.value = agent.name || '';
-	dom.agentTypeSelect.value = agent.type || 'generic';
-	dom.agentPromptTextarea.value = agent.prompt || '';
-	// Tools and Sub-agents are handled by separate rendering functions
-}
-// Function to get data from agent details form
-export function getAgentDetails() {
-	if (!state.currentWorkflow || !state.currentAgentId) return null;
-	const agent = state.currentWorkflow.agents[state.currentAgentId];
-	if (!agent) return null;
-	agent.name = dom.agentNameInput.value;
-	agent.type = dom.agentTypeSelect.value;
-	agent.prompt = dom.agentPromptTextarea.value;
-	// Collect selected tools
-	agent.tools = [];
-	dom.agentToolsDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-		agent.tools.push({ name: checkbox.value });
-	});
-	// Sub-agents logic would go here
-
-	return agent;
-}
-export function renderAvailableTools(availableTools, selectedTools) {
-	const agentToolsDiv = dom.agentToolsDiv;
-	agentToolsDiv.innerHTML = ''; // Clear current list
-	const selectedToolNames = new Set(selectedTools.map(t => t.name));
-
-	if (!availableTools || availableTools.length === 0) {
-		agentToolsDiv.textContent = 'No tools available.';
-		return;
-	}
-
-	availableTools.forEach(tool => {
-		const label = document.createElement('label');
-		const checkbox = document.createElement('input');
-		checkbox.type = 'checkbox';
-		checkbox.value = tool.name;
-		if (selectedToolNames.has(tool.name)) {
-			checkbox.checked = true;
-		}
-		label.appendChild(checkbox);
-		label.appendChild(document.createTextNode(`${tool.name} (${tool.description})`));
-		agentToolsDiv.appendChild(label);
-		agentToolsDiv.appendChild(document.createElement('br')); // Simple layout
-	});
-}
 //Filesystem Browser Rendering and Navigation
 export function navigateToPath(path) {
 	state.currentFilesystemPath = path;
