@@ -5,26 +5,45 @@ import { getSocketPosition } from './utils.js';
 import * as dom from './dom.js';
 
 // Calculate SVG path data (Bezier curve)
-export function calculateLinkPath(startPos, endPos) {
+// Modified to accept node orientations to determine curve style
+export function calculateLinkPath(startPos, endPos, startNodeOrientation, endNodeOrientation) {
 	const dx = endPos.x - startPos.x;
 	const dy = endPos.y - startPos.y;
 
 	// Control point calculation (simple horizontal/vertical bias)
 	let cp1x, cp1y, cp2x, cp2y;
 
-	if (state.currentFlowDirection === 'horizontal') {
-		const curveIntensity = Math.min(Math.max(Math.abs(dx) * 0.6, 50), 200); // Adjust multiplier and clamps
+	// Determine curve style. If either node is vertical, or if they are different,
+	// a more generic curve might be needed, or prioritize one style.
+	// For now, let's assume if the startNode is horizontal, use horizontal style, else vertical.
+	// This could be refined based on desired behavior when connecting nodes of different orientations.
+	// A common approach is to use horizontal curve if the output socket is on the side,
+	// and vertical if the output socket is on top/bottom.
+	// The `startNodeOrientation` will typically determine this for the first control point.
+
+	if (startNodeOrientation === 'horizontal') {
+		const curveIntensity = Math.min(Math.max(Math.abs(dx) * 0.6, 50), 200);
 		cp1x = startPos.x + curveIntensity;
 		cp1y = startPos.y;
-		cp2x = endPos.x - curveIntensity;
-		cp2y = endPos.y;
-	} else { // Vertical
+	} else { // Vertical start node
 		const curveIntensity = Math.min(Math.max(Math.abs(dy) * 0.6, 50), 200);
 		cp1x = startPos.x;
 		cp1y = startPos.y + curveIntensity;
+	}
+
+	if (endNodeOrientation === 'horizontal') {
+		const curveIntensity = Math.min(Math.max(Math.abs(dx) * 0.6, 50), 200);
+		cp2x = endPos.x - curveIntensity;
+		cp2y = endPos.y;
+	} else { // Vertical end node
+		const curveIntensity = Math.min(Math.max(Math.abs(dy) * 0.6, 50), 200);
 		cp2x = endPos.x;
 		cp2y = endPos.y - curveIntensity;
 	}
+
+	// If start and end nodes have different orientations, the above might still look odd.
+	// A more sophisticated approach might be needed, e.g., always horizontal from output, always vertical to input, etc.
+	// For now, this independent control point calculation based on each node's orientation is a step forward.
 
 	// M = Move to start, C = Cubic Bezier curve to end
 	return `M ${startPos.x} ${startPos.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${endPos.x} ${endPos.y}`;
@@ -34,16 +53,16 @@ export function updateLinkPath(linkId) {
 	const link = state.links[linkId];
 	if (!link) return;
 
-	const fromNode = state.nodes[link.fromNode];
-	const toNode = state.nodes[link.toNode];
-	if (!fromNode || !toNode) {
-		console.warn(`Node not found for link ${linkId}, removing link.`);
+	const fromNodeData = state.nodes[link.fromNode];
+	const toNodeData = state.nodes[link.toNode];
+	if (!fromNodeData || !toNodeData) {
+		console.warn(`Node data not found for link ${linkId}, removing link.`);
 		removeLink(linkId); // Clean up broken link
 		return;
 	}
 
-	const startSocket = fromNode.outputs[link.fromSocket];
-	const endSocket = toNode.inputs[link.toSocket];
+	const startSocket = fromNodeData.outputs[link.fromSocket];
+	const endSocket = toNodeData.inputs[link.toSocket];
 
 	if (!startSocket || !endSocket || !startSocket.element || !endSocket.element) {
 		console.warn(`Socket not found for link ${linkId}, removing link.`);
@@ -54,7 +73,8 @@ export function updateLinkPath(linkId) {
 	const startPos = getSocketPosition(startSocket.element);
 	const endPos = getSocketPosition(endSocket.element);
 
-	const pathData = calculateLinkPath(startPos, endPos);
+	// Pass node orientations to calculateLinkPath
+	const pathData = calculateLinkPath(startPos, endPos, fromNodeData.flowDirection, toNodeData.flowDirection);
 	if (link.element) {
 		link.element.setAttribute('d', pathData);
 	} else {

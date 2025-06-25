@@ -114,16 +114,49 @@
 	padding: 10px; /* Increased padding */
 	background-color: rgba(0, 0, 0, 0.3); /* Slightly darker header */
 	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-	text-align: center;
+	/* text-align: center; Removed for flex layout */
 	cursor: grab;
 	border-radius: 5px 5px 0 0; /* Rounded top corners */
 	color: #ffffff; /* White header text */
 	font-size: 1em;
+	/* position: relative; Not strictly needed if button is a flex item */
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 }
 
 	.node-header:hover {
 		background-color: rgba(0, 0, 0, 0.25); /* Slightly darker header */
 	}
+
+.node-title-text {
+	flex-grow: 1; /* Allows title to take space and push button to right */
+	text-align: left; /* Explicitly left-align title text */
+	overflow: hidden; /* Prevent long titles from breaking layout */
+	text-overflow: ellipsis; /* Show ... for very long titles */
+	white-space: nowrap; /* Keep title on one line */
+}
+
+/* Toggle button style */
+.node-orientation-toggle {
+	/* position: absolute; Removed for flex layout */
+	/* top: 50%; */
+	/* left: 50%; */
+	/* transform: translate(-50%, -50%); */
+	background: rgba(255,255,255,0.1);
+	color: white;
+	border: 1px solid rgba(255,255,255,0.2);
+	border-radius: 3px;
+	cursor: pointer;
+	font-size: 12px;
+	line-height: 1;
+	padding: 3px 5px;
+	margin-left: 8px; /* Space between title and button */
+}
+	.node-orientation-toggle:hover {
+		background: rgba(255,255,255,0.2);
+	}
+
 
 .node-content {
 	display: flex;
@@ -213,7 +246,7 @@
 .node.flow-horizontal .node-content {
 	flex-direction: row; /* Inputs and outputs side-by-side */
 	justify-content: space-between; /* Push inputs/outputs apart */
-	align-items: center; /* Vertically center content */
+	align-items: flex-start; /* Align items to the start for consistent socket alignment */
 }
 
 .node.flow-horizontal .node-inputs {
@@ -252,31 +285,45 @@
 
 /* --- Vertical Flow Specific Styles --- */
 .node.flow-vertical {
-	/* Default node layout is already column */
+	/* .node is already display:flex, flex-direction:column by default */
 }
 
 	.node.flow-vertical .node-content {
-		flex-direction: column; /* Ensure content stacks vertically */
-		align-items: stretch; /* Allow inputs/outputs to take width */
+		display: contents; /* Children (.node-inputs, .node-outputs) become flex items of .node */
 	}
 
-	.node.flow-vertical .node-inputs,
-	.node.flow-vertical .node-outputs {
+	/* Order for vertical flow: Inputs -> Header -> Outputs */
+	.node.flow-vertical .node-inputs {
+		order: 1; /* First item in .node's flex layout */
 		flex-direction: row; /* Sockets side-by-side */
 		justify-content: space-around; /* Distribute sockets horizontally */
 		width: 100%; /* Take full width */
-		padding: 0 8px; /* Padding inside */
-		margin: 0; /* Remove default margins */
+		padding: 8px;
+		margin: 0;
+		box-sizing: border-box;
 	}
 
-	.node.flow-vertical .node-inputs {
-		margin-bottom: 8px;
+	.node.flow-vertical .node-header {
+		order: 2; /* Second item in .node's flex layout */
+		text-align: center; /* Ensure title is centered */
+		margin-top: 8px; /* Space above header */
+		margin-bottom: 8px; /* Space below header */
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 0; /* No rounded corners as it's in the middle */
 	}
-	/* Space between inputs and outputs sections */
+
 	.node.flow-vertical .node-outputs {
-		margin-top: 8px;
+		order: 3; /* Third item in .node's flex layout */
+		flex-direction: row; /* Sockets side-by-side */
+		justify-content: space-around; /* Distribute sockets horizontally */
+		width: 100%; /* Take full width */
+		padding: 8px;
+		margin: 0;
+		box-sizing: border-box;
 	}
 
+	/* Socket arrangement within .node-inputs and .node-outputs for vertical flow */
 	.node.flow-vertical .node-socket {
 		flex-direction: column; /* Stack point and label vertically */
 		margin: 0 6px; /* Horizontal spacing between sockets */
@@ -291,10 +338,15 @@
 	}
 
 	.node.flow-vertical .node-outputs .socket-point {
-		order: 1; /* Point on bottom */
+		order: 1; /* Point on bottom (after label) */
 		margin-top: 8px; /* Space above point */
 		margin-bottom: -12px; /* Pull point onto the edge */
 		transform: none; /* Reset horizontal transform */
+	}
+	/* For vertical outputs, label should be above point if point is at the bottom */
+	.node.flow-vertical .node-outputs .socket-label {
+		order: -1; /* Label on top */
+		margin-bottom: 8px; /* Space below label */
 	}
 
 
