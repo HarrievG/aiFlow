@@ -6,7 +6,7 @@ import { updateLinksForNode } from './link.js';
 import { handleSocketMouseDown, handleLinkMouseUp, handleSocketMouseEnter, handleSocketMouseLeave } from './interactions.js'; // Import interaction handlers
 import { editAgent } from './main.js'; // Import editAgent function
 
-function createSocketElement(id, name, type) {
+function createSocketElement(id, name, type, flowDirection) {
 	const socketWrapper = document.createElement('div');
 	socketWrapper.classList.add('node-socket');
 	socketWrapper.dataset.socketId = id; // Store id for reference
@@ -21,7 +21,7 @@ function createSocketElement(id, name, type) {
 	label.textContent = name;
 
 	// Structure based on flow direction (though CSS handles visual layout)
-	if (state.currentFlowDirection === 'horizontal') {
+	if (flowDirection === 'horizontal') {
 		if (type === 'input') {
 			socketWrapper.appendChild(point);
 			socketWrapper.appendChild(label);
@@ -31,17 +31,85 @@ function createSocketElement(id, name, type) {
 		}
 	} else { // Vertical
 		if (type === 'input') {
+			socketWrapper.appendChild(point); // Point first for inputs (top)
+			socketWrapper.appendChild(label);
+		} else { // Outputs will be below title, so label first (top) then point (bottom) for vertical consistency if needed.
+			// However, the plan specifies inputs above title for vertical.
+			// Outputs are not explicitly mentioned to be above/below title in vertical,
+			// but standard vertical flow usually has inputs top, outputs bottom.
+			// For now, let's keep outputs also point first for vertical, assuming they'd be at the bottom of the node.
+			// CSS will ultimately determine the final visual positioning.
 			socketWrapper.appendChild(point);
 			socketWrapper.appendChild(label);
-		} else {
-			socketWrapper.appendChild(label);
-			socketWrapper.appendChild(point);
 		}
 	}
 
 
 	return socketWrapper;
 }
+
+function toggleNodeOrientation(nodeId) {
+	const nodeData = state.nodes[nodeId];
+	if (!nodeData) return;
+
+	const newOrientation = nodeData.flowDirection === 'horizontal' ? 'vertical' : 'horizontal';
+	nodeData.flowDirection = newOrientation;
+	nodeData.element.classList.toggle('flow-horizontal');
+	nodeData.element.classList.toggle('flow-vertical');
+
+	// Update toggle button icon
+	const toggleButton = nodeData.element.querySelector('.node-orientation-toggle');
+	if (toggleButton) {
+		toggleButton.innerHTML = newOrientation === 'horizontal' ? '&#8644;' : '&#8645;'; // Show icon for the target state
+		// If current is horizontal (meaning newOrientation will be vertical), show horizontal arrows to indicate switch TO horizontal
+		// If current is vertical (meaning newOrientation will be horizontal), show vertical arrows to indicate switch TO vertical
+		toggleButton.innerHTML = nodeData.flowDirection === 'horizontal' ? '&#8644;' : '&#8645;';
+		// Corrected logic: The icon should represent the action to switch.
+		// If current is horizontal, button shows "switch to vertical" (vertical arrow).
+		// If current is vertical, button shows "switch to horizontal" (horizontal arrow).
+		toggleButton.innerHTML = nodeData.flowDirection === 'horizontal' ? '&#8644;' /* up-down arrow (represents vertical) */ : '&#8645;' /* left-right arrow (represents horizontal) */;
+
+	}
+
+	// Re-render sockets or adjust classes as needed.
+	// For simplicity, we can remove and re-add sockets.
+	// Or, more efficiently, just update their layout via CSS and potentially minor DOM adjustments if structure must change.
+	// The current createSocketElement already structures based on flowDirection, so we might need to re-create them.
+	// Let's try updating classes first, and if layout is complex, then re-create.
+
+	const inputsContainer = nodeData.element.querySelector('.node-inputs');
+	const outputsContainer = nodeData.element.querySelector('.node-outputs');
+
+	// Clear existing sockets
+	inputsContainer.innerHTML = '';
+	outputsContainer.innerHTML = '';
+
+	// Recreate sockets with the new orientation
+	// Need to iterate over the stored socket definitions in nodeData.inputs and nodeData.outputs
+	Object.values(nodeData.inputs).forEach(inputDef => {
+		const socketElement = createSocketElement(inputDef.id, inputDef.name, 'input', newOrientation);
+		inputsContainer.appendChild(socketElement);
+		const socketPoint = socketElement.querySelector('.socket-point');
+		inputDef.element = socketPoint; // Update element reference
+		socketPoint.addEventListener('mouseup', handleLinkMouseUp);
+		socketPoint.addEventListener('mousedown', handleSocketMouseDown);
+		socketPoint.addEventListener('mouseenter', handleSocketMouseEnter);
+		socketPoint.addEventListener('mouseleave', handleSocketMouseLeave);
+	});
+
+	Object.values(nodeData.outputs).forEach(outputDef => {
+		const socketElement = createSocketElement(outputDef.id, outputDef.name, 'output', newOrientation);
+		outputsContainer.appendChild(socketElement);
+		const socketPoint = socketElement.querySelector('.socket-point');
+		outputDef.element = socketPoint; // Update element reference
+		socketPoint.addEventListener('mousedown', handleSocketMouseDown);
+		socketPoint.addEventListener('mouseenter', handleSocketMouseEnter);
+		socketPoint.addEventListener('mouseleave', handleSocketMouseLeave);
+	});
+
+	updateLinksForNode(nodeId); // Update links as socket positions might change
+}
+
 
 // Modified createNode to accept agentId and optional inputs/outputs
 export function createNode(id = null, x, y, agentId, title = null, inputs = [], outputs = []) {
@@ -50,8 +118,8 @@ export function createNode(id = null, x, y, agentId, title = null, inputs = [], 
 		const viewCenterX = editorRect.width / 2;
 		const viewCenterY = editorRect.height / 2;
 		const workspaceCoords = screenToWorkspace(editorRect.left + viewCenterX, editorRect.top + viewCenterY);
-		x = workspaceCoords.x ; // Adjust for default node width
-		y = workspaceCoords.y ; // Adjust for default node height
+		x = workspaceCoords.x; // Adjust for default node width
+		y = workspaceCoords.y; // Adjust for default node height
 	}
 
 	const nodeElement = dom.nodeTemplate.content.firstElementChild.cloneNode(true);
@@ -59,11 +127,30 @@ export function createNode(id = null, x, y, agentId, title = null, inputs = [], 
 	nodeElement.id = nodeId;
 	nodeElement.style.left = `${x}px`;
 	nodeElement.style.top = `${y}px`;
-	nodeElement.classList.add(state.currentFlowDirection === 'vertical' ? 'flow-vertical' : 'flow-horizontal');
+	// Default to horizontal, specific class will be added based on nodeData.flowDirection
+	// nodeElement.classList.add(state.currentFlowDirection === 'vertical' ? 'flow-vertical' : 'flow-horizontal');
 	nodeElement.dataset.agentId = agentId; // Store the linked agent ID on the DOM element
 
 	const header = nodeElement.querySelector('.node-header');
-	header.textContent = title || `Node ${nodeId.split('-')[1]}`;
+	// header.textContent = title || `Node ${nodeId.split('-')[1]}`; // Clear existing content before adding span and button
+	header.innerHTML = ''; // Clear existing content
+
+	const titleTextSpan = document.createElement('span');
+	titleTextSpan.classList.add('node-title-text');
+	titleTextSpan.textContent = title || `Node ${nodeId.split('-')[1]}`;
+	header.appendChild(titleTextSpan);
+
+	// Add toggle button to header
+	const toggleButton = document.createElement('button');
+	toggleButton.classList.add('node-orientation-toggle');
+	toggleButton.innerHTML = '&#8644;'; // Up/Down arrow for toggle
+	toggleButton.title = 'Toggle Orientation';
+	toggleButton.addEventListener('click', (e) => {
+		e.stopPropagation(); // Prevent node drag
+		toggleNodeOrientation(nodeId);
+	});
+	header.appendChild(toggleButton);
+
 
 	// Store basic node data first
 	const nodeData = {
@@ -73,28 +160,33 @@ export function createNode(id = null, x, y, agentId, title = null, inputs = [], 
 		element: nodeElement,
 		title: header.textContent,
 		agentId: agentId, // Store the linked agent ID in state
+		flowDirection: 'horizontal', // Default to horizontal
 		inputs: {},
 		outputs: {}
 	};
 	state.nodes[nodeId] = nodeData; // Add to global state
+	nodeElement.classList.add(nodeData.flowDirection === 'vertical' ? 'flow-vertical' : 'flow-horizontal');
+
 
 	// --- Create Sockets ---
 	const inputsContainer = nodeElement.querySelector('.node-inputs');
 	const outputsContainer = nodeElement.querySelector('.node-outputs');
 
-	// Default sockets if none provided
-	if (inputs.length === 0 && outputs.length === 0) {
-		// Default sockets for generic nodes
-		inputs = [{ name: 'In' }];
+	// Add default "Any" input
+	const defaultAnyInput = { name: 'Any', type: 'any' }; // Added type for potential future use
+	let finalInputs = [defaultAnyInput, ...inputs];
+
+	// Default sockets if none provided (after adding "Any")
+	if (finalInputs.length === 1 && outputs.length === 0) { // Only "Any" input, no other inputs/outputs
+		// Default output for generic nodes if no outputs were defined
 		outputs = [{ name: 'Out' }];
-		// TODO: Logic here to create sockets based on agent type/config
-		// e.g., FlowMaster might have specific input/output sockets based on its state machine definition
 	}
 
-	inputs.forEach((inputDef, index) => {
+
+	finalInputs.forEach((inputDef, index) => {
 		// Use a consistent socket ID format that includes node ID and index/name
-		const socketId = `input-${inputDef.name || index}`; // Use name if available, fallback to index
-		const socketElement = createSocketElement(socketId, inputDef.name || `Input ${index}`, 'input');
+		const socketId = `input-${inputDef.name.replace(/\s+/g, '-')}-${index}`; // Sanitize name for ID
+		const socketElement = createSocketElement(socketId, inputDef.name || `Input ${index}`, 'input', nodeData.flowDirection);
 		inputsContainer.appendChild(socketElement);
 		const socketPoint = socketElement.querySelector('.socket-point'); // Get the point
 		nodeData.inputs[socketId] = { // Store socket data keyed by socketId
@@ -112,8 +204,8 @@ export function createNode(id = null, x, y, agentId, title = null, inputs = [], 
 	});
 
 	outputs.forEach((outputDef, index) => {
-		const socketId = `output-${outputDef.name || index}`; // Use name if available, fallback to index
-		const socketElement = createSocketElement(socketId, outputDef.name || `Output ${index}`, 'output');
+		const socketId = `output-${outputDef.name.replace(/\s+/g, '-')}-${index}`; // Sanitize name for ID
+		const socketElement = createSocketElement(socketId, outputDef.name || `Output ${index}`, 'output', nodeData.flowDirection);
 		outputsContainer.appendChild(socketElement);
 		const socketPoint = socketElement.querySelector('.socket-point'); // Get the point
 		nodeData.outputs[socketId] = { // Store socket data keyed by socketId
@@ -135,7 +227,8 @@ export function createNode(id = null, x, y, agentId, title = null, inputs = [], 
 	header.addEventListener('mousedown', startNodeDrag);
 
 	// Add double-click listener to the node (or header) to edit the agent
-	nodeElement.addEventListener('dblclick', () => {
+	nodeElement.addEventListener('dblclick', (e) => {
+		if (e.target.classList.contains('node-orientation-toggle')) return; // Don't edit agent if toggle is clicked
 		const linkedAgentId = nodeElement.dataset.agentId;
 		if (linkedAgentId) {
 			editAgent(linkedAgentId);
@@ -152,6 +245,8 @@ export function createNode(id = null, x, y, agentId, title = null, inputs = [], 
 
 // --- Node Dragging Logic ---
 export function startNodeDrag(e) {
+	// Prevent starting node drag when clicking on the toggle button
+	if (e.target.classList.contains('node-orientation-toggle')) return;
 	if (e.target !== e.currentTarget && e.currentTarget.classList.contains('node')) return;
 	// Prevent starting node drag when starting link/reconnect drag from socket
 	if (e.target.classList.contains('socket-point')) return;

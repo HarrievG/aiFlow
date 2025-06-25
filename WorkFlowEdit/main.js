@@ -318,8 +318,23 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 
 		// Create the node, linked to the selected agent.
-		// createNode will place it in the center of the view.
-		createNode(null, undefined, undefined, selectedAgent.id, selectedAgent.name);
+		// Dynamically create outputs based on selectedAgent's definition
+		let nodeOutputs = [];
+		if (selectedAgent.outputs && selectedAgent.outputs.format && selectedAgent.outputs.format.properties) {
+			for (const outputName in selectedAgent.outputs.format.properties) {
+				const outputDetails = selectedAgent.outputs.format.properties[outputName];
+				nodeOutputs.push({
+					name: outputName,
+					value_type: outputDetails.type || 'any'
+				});
+			}
+		}
+		// If no outputs defined on agent, createNode will use its internal default.
+		// Otherwise, pass the dynamic outputs.
+		// An explicit default input can also be passed if desired:
+		// const nodeInputs = [{ name: 'In' }];
+
+		createNode(null, undefined, undefined, selectedAgent.id, selectedAgent.name, [], nodeOutputs);
 	});
 
 	dom.flowHorizontalRadio.addEventListener('change', () => {
@@ -631,9 +646,24 @@ export function loadLayout(workflow) {
 				console.warn(`Agent with ID ${nodeData.agent_id} not found for node ${nodeId}. Skipping node creation.`);
 				continue;
 			}
-			// Sockets are hardcoded for now, but this is how you'd make them dynamic
-			const inputs = [{ name: 'In' }];
-			const outputs = [{ name: 'Out' }];
+			// Dynamically create inputs and outputs based on agent definition
+			let inputs = [{ name: 'In' }]; // Default input, can be customized if agent definition supports it
+			let outputs = [];
+
+			if (agent.outputs && agent.outputs.format && agent.outputs.format.properties) {
+				for (const outputName in agent.outputs.format.properties) {
+					const outputDetails = agent.outputs.format.properties[outputName];
+					outputs.push({
+						name: outputName,
+						value_type: outputDetails.type || 'any' // Use defined type or default to 'any'
+					});
+				}
+			}
+
+			// If no outputs were defined on the agent, provide a default one.
+			if (outputs.length === 0) {
+				outputs.push({ name: 'Out', value_type: 'any' });
+			}
 
 			createNode(nodeData.id, nodeData.x, nodeData.y, nodeData.agent_id, agent.name, inputs, outputs);
 		}
