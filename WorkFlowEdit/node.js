@@ -85,8 +85,8 @@ export function createNode(id = null, x, y, agentId, title = null, inputs = [], 
 	// Default sockets if none provided
 	if (inputs.length === 0 && outputs.length === 0) {
 		// Default sockets for generic nodes
-		inputs = [{ name: 'In' }];
-		outputs = [{ name: 'Out' }];
+		inputs = [{ name: 'In' }]; // Assuming default input doesn't need a type for now
+		outputs = [{ name: 'Out', value_type: 'any' }]; // Default output with a value_type
 		// TODO: Logic here to create sockets based on agent type/config
 		// e.g., FlowMaster might have specific input/output sockets based on its state machine definition
 	}
@@ -100,6 +100,7 @@ export function createNode(id = null, x, y, agentId, title = null, inputs = [], 
 		nodeData.inputs[socketId] = { // Store socket data keyed by socketId
 			id: socketId,
 			name: inputDef.name || `Input ${index}`,
+			// value_type: inputDef.value_type || 'any', // Assuming inputs might also have types in the future
 			nodeId: nodeId,
 			element: socketPoint,
 			links: []
