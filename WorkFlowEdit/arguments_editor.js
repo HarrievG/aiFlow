@@ -72,12 +72,12 @@ function renderArgumentPair(key = '', value = '', exposed = false, transient = f
 		pairDiv.remove();
 	});
 
-	pairDiv.appendChild(exposeLable);
-	pairDiv.appendChild(transientLabel); // Add the transient label and checkbox
+	pairDiv.appendChild(exposeLable);	
 	pairDiv.appendChild(keyInput);
 	// Simple text node for ":" separator for visual clarity, styled by flex spacing
 	pairDiv.appendChild(document.createTextNode(': ')); 
 	pairDiv.appendChild(valueInput);
+	pairDiv.appendChild(transientLabel); // Add the transient label and checkbox
 	pairDiv.appendChild(removeBtn);
 
 	return pairDiv;
