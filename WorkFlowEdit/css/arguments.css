@@ -33,12 +33,23 @@
 	.argument-pair label {
 		width: auto;
 		font-size: 32px;
-		color: rgb(25,0,0);
+		/* color: rgb(25,0,0); */ /* Color is now set by JS */
 		background: #00000000;
 		margin-bottom: 0px;
 		user-select: none;
 		cursor: pointer;
+		transition: transform 0.1s ease-out; /* For click/hover effects */
 	}
+
+		/* Style for the 'Exposed' label */
+		.argument-pair label[for*="expose"] { /* Assuming an ID or class indicates this is for 'exposed' */
+			/* Specific styles if needed, otherwise defaults apply */
+		}
+
+		/* Style for the 'Transient' label */
+		.argument-pair label[for*="transient"] { /* Assuming an ID or class indicates this is for 'transient' */
+			font-size: 28px; /* Slightly smaller if desired, or keep same */
+		}
 
 		.argument-pair label:hover {
 			transform: scale(1.15); /* Slight grow effect */
@@ -49,10 +60,12 @@
 			}
 
 	.argument-pair input[type="checkbox"] {
-		visibility: hidden;
+		visibility: hidden; /* Hidden as the label acts as the UI */
 		width: 0px;
 		height: 0px;
-		margin-bottom: 0px;
+		margin: 0;
+		padding: 0;
+		position: absolute; /* Take out of flow */
 	}
 
 	.argument-pair input[type="text"] {
