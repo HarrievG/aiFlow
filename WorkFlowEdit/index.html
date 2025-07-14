@@ -15,12 +15,14 @@
 	<link rel="stylesheet" href="css/structured_outputs.css">
 	<link rel="stylesheet" href="css/modal.css">
 	<link rel="stylesheet" href="css/animations.css">
+	<link rel="stylesheet" href="css/microphone.css">
 </head>
 <body>
 	<h1> aiFlow </h1>
 
 	<div id="controls">
 		<button id="home-btn">Home</button>
+		<button id="mic-view-btn">🎤</button>
 		<button id="add-node-btn" class="editor-control">Add Node</button>
 		<button id="save-btn" class="editor-control">Save Layout</button>
 		<button id="load-btn" class="editor-control">Load Layout</button>
@@ -177,6 +179,14 @@
 			<p>Define key-value pairs for workflow or agent results.</p>
 			<div id="outputs-list-container">
 				<!-- output pairs will be loaded here -->
+			</div>
+		</div>
+
+		<!-- Microphone View -->
+		<div id="microphone-view" class="view">
+			<div id="microphone-controls">
+				<button id="mic-btn">🎤</button>
+				<button id="speaker-btn">🔇</button>
 			</div>
 		</div>
 	</div>

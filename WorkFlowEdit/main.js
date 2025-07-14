@@ -27,6 +27,7 @@ import { initExecuteWorkflowModal, showExecuteWorkflowModal } from './workflow_m
 import { createLink } from './link.js';
 import { updateWorkspaceTransform } from './utils.js';
 import { initOutputEditor, renderOutputs } from './output_editor.js';
+import { init as initMicrophoneView } from './microphoneView.js';
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -40,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initOutputEditor();
 	initWorkflowEditorView({ setFlowDirectionCallback: setFlowDirection }); // Already here from previous refactor
 	initAgentEditorView(); // Add this line
+	initMicrophoneView();
 
 	initExecuteWorkflowModal(); // Initialize modal event listeners
 
@@ -47,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	// Global UI Buttons
 	dom.homeBtn.addEventListener('click', () => showView('home',false));
+	document.getElementById('mic-view-btn').addEventListener('click', () => showView('microphone'));
 
 	// Home View Buttons
 	dom.createWorkflowBtn.addEventListener('click', () => {

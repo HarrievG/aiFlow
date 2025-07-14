@@ -37,6 +37,8 @@ export function showView(viewId,resetScroll = true) {
 		sendApiRequest('listWorkflows', {}, renderWorkflowList);
 	} else if (viewId === 'filesystem') {
 		navigateToPath(state.currentFilesystemPath);
+	} else if (viewId === 'microphone') {
+		// No special action needed, the view is just shown
 	} else if (viewId === 'structured-outputs') {
 
 		// Dynamically set the title of the shared output editor

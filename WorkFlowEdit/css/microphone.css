@@ -1,0 +1,40 @@
+#microphone-view {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+#microphone-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#mic-btn {
+    font-size: 10rem;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: none;
+    background-color: #4caf50;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#mic-btn:hover {
+    background-color: #66bb6a;
+}
+
+#mic-btn.recording {
+    background-color: #f44336;
+}
+
+#speaker-btn {
+    font-size: 2rem;
+    margin-top: 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
