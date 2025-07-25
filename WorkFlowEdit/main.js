@@ -230,36 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		showView('structured-outputs');
 	});
 
-	domAgentEdit.saveAgentDetailsBtn.addEventListener('click', () => {
-		if (!state.currentWorkflow || !state.currentAgentId) return;
-		// Update the specific agent in the current workflow state
-		const agentId = state.currentAgentId;
-		// Use getAgentDetailsView to update the agent object in state from the form
-		const agent = getAgentDetailsView(); // This function should retrieve the agent from state and update it
-
-		if (agent) {
-			// agent object is already updated by getAgentDetailsView with form values and tools.
-			// Sub-agents logic would go here if implemented.
-			// agent.outputs is already part of the 'agent' object due to direct state manipulation by output_editor.js
-			// or should be handled by getAgentDetailsView if it were to manage outputs form too.
-
-			sendApiRequest('saveAgent', agent, (response) => {
-				if (response.status === 'success') {
-					console.log('Agent saved (with outputs):', response.payload.agent_id);
-					// If agent ID was newly assigned by backend (though not typical for agents in this app structure)
-					// state.currentWorkflow.agents[agentId].id = response.payload.agent_id;
-					// populateAgentDetailsView(agent); // Re-populate to reflect any backend changes, if necessary
-				} else {
-					console.error('Save failed:', response.payload.message);
-					alert('Error saving agent: ' + response.payload.message);
-				}
-			});
-
-			console.log('Agent details updated in state (including outputs):', agent);
-			alert('Agent saved');
-		}
-	});
-
 	domAgentEdit.backToWorkflowBtn.addEventListener('click', () => {
 		showView('workflow-editor',false);
 		// Ensure the correct sub-view (agents or graph) is shown
@@ -413,7 +383,6 @@ export function editAgent(agentId) {
 		agent.outputs = { format: { type: 'object', properties: {}, required: [] } };
 	}
 
-
 	if (agent.type === 'master') {
 		// Show specialized Flow Master editor
 		showView('flowmaster-editor');
@@ -421,11 +390,11 @@ export function editAgent(agentId) {
 	} else {
 		// Show generic Agent editor
 		showView('agent-editor');
-		populateAgentDetailsView(agent); // Use the new view function
+		populateAgentDetailsView(agent);
 		// Request available tools from backend to populate tool list
 		sendApiRequest('listAvailableTools', {}, (response) => {
 			if (response.status === 'success') {
-				renderAvailableToolsView(response.payload.tools, agent.tools); // Use the new view function
+				renderAvailableToolsView(response.payload.tools, agent.tools);
 			} else {
 				console.error('Failed to list available tools:', response.payload.message);
 			}

@@ -91,8 +91,6 @@ export function populateWorkflowDetails(workflow) {
 	// Clear existing options before populating
 	elements.workflowServiceList.innerHTML = '';
 
-	// Populate service list (logic from original ui.js)
-	// This part still uses sendApiRequest, which is fine.
 	sendApiRequest('listServices', {}, (response) => {
 		if (response.status === 'success') {
 			if (response.payload.items && response.payload.items.length) {

@@ -1,7 +1,11 @@
 // WorkFlowEdit/agentEditorView.js
 // This module will encapsulate the view logic for the Agent Editor.
 
+import { sendApiRequest } from './websocket.js';
+
 console.log("AgentEditorView module loaded");
+
+let agentServiceListPopulated = false;
 
 // DOM element references will be stored here
 export const elements = {
@@ -32,6 +36,7 @@ export function init() {
 	elements.agentNameInput = document.getElementById('agent-name');
 	elements.agentTypeSelect = document.getElementById('agent-type');
 	elements.agentPromptTextarea = document.getElementById('agent-prompt');
+	elements.agentServiceList = document.getElementById('agent-service-type');
 	elements.agentToolsDiv = document.getElementById('agent-tools');
 	elements.saveAgentDetailsBtn = document.getElementById('save-agent-details-btn'); // Often listeners are in main.js, but element can be here
 	elements.editAgentOutputsBtn = document.getElementById('edit-agent-outputs-btn');
@@ -43,6 +48,30 @@ export function init() {
 		}
 	}
 	// console.log("AgentEditorView initialized and DOM elements queried.");
+
+	
+	elements.saveAgentDetailsBtn.addEventListener('click', () => {
+		if (!state.currentWorkflow || !state.currentAgentId) return;
+		// Update the specific agent in the current workflow state
+		const agentId = state.currentAgentId;
+		
+		const agent = getAgentDetails(); // This function should retrieve the agent from state and update it
+	
+		if (agent) {
+	
+			sendApiRequest('saveAgent', agent, (response) => {
+				if (response.status === 'success') {
+					console.log('Agent saved (with outputs):', response.payload.agent_id);
+				} else {
+					console.error('Save failed:', response.payload.message);
+					alert('Error saving agent: ' + response.payload.message);
+				}
+			});
+	
+			console.log('Agent details updated in state (including outputs):', agent);
+			alert('Agent saved');
+		}
+	});
 }
 
 // Import state if getAgentDetails relies on it (it does in the original ui.js version)
@@ -58,6 +87,47 @@ export function populateAgentDetails(agent) {
 	elements.agentTypeSelect.value = agent.type || 'generic';
 	elements.agentPromptTextarea.value = agent.prompt || '';
 	// Tools and Sub-agents are handled by renderAvailableTools or other functions
+
+	if ( ! agentServiceListPopulated )
+	{	
+		sendApiRequest('listServices', {}, (response) => {
+			if (response.status === 'success') {
+				if (response.payload.items && response.payload.items.length) {
+					response.payload.items.forEach(entry => {
+						const option = document.createElement('option');
+						option.value = entry.id; // Use ID as value for easier retrieval
+						option.textContent = entry.name;
+	
+						if (agent.service_id)
+							option.selected = entry.id === agent.service_id;
+						else
+							option.selected = entry.id === state.currentWorkflow.service_id; 
+	
+						elements.agentServiceList.appendChild(option);
+					});
+				} else {
+					const option = document.createElement('option');
+					option.textContent = 'No service context defined yet.';
+					elements.agentServiceList.appendChild(option);
+				}
+				agentServiceListPopulated = true;
+			} else {
+				console.error('Failed to list services for agent:', response.payload ? response.payload.message : 'Unknown error');
+				const option = document.createElement('option');
+				option.textContent = 'Error loading services.';
+				elements.agentServiceList.appendChild(option);
+			}
+		});
+	}else
+	{
+		if (agent.service_id)
+		{
+			Array.from(elements.agentServiceList.options).forEach(service_option => {
+				service_option.selected = service_option.value === agent.service_id;
+			});
+		}
+	}
+
 }
 
 // Function to get data from agent details form
@@ -78,7 +148,8 @@ export function getAgentDetails() {
 	agent.name = elements.agentNameInput.value;
 	agent.type = elements.agentTypeSelect.value;
 	agent.prompt = elements.agentPromptTextarea.value;
-
+	agent.service_id = elements.agentServiceList.value;
+	
 	// Collect selected tools
 	agent.tools = [];
 	if (elements.agentToolsDiv) {
