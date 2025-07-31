@@ -90,6 +90,11 @@ export function populateAgentDetails(agent) {
 
 	if ( ! agentServiceListPopulated )
 	{	
+		const empty_option = document.createElement('option');
+		empty_option.value = -1;
+		empty_option.textContent = "<workflow>";
+		elements.agentServiceList.appendChild(empty_option);
+
 		sendApiRequest('listServices', {}, (response) => {
 			if (response.status === 'success') {
 				if (response.payload.items && response.payload.items.length) {
@@ -148,7 +153,11 @@ export function getAgentDetails() {
 	agent.name = elements.agentNameInput.value;
 	agent.type = elements.agentTypeSelect.value;
 	agent.prompt = elements.agentPromptTextarea.value;
-	agent.service_id = elements.agentServiceList.value;
+
+	if (elements.agentServiceList.value == -1)
+		agent.service_id = null;
+	else
+		agent.service_id = elements.agentServiceList.value;
 	
 	// Collect selected tools
 	agent.tools = [];
